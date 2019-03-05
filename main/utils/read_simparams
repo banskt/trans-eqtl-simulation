@@ -1,0 +1,42 @@
+#!/bin/bash
+
+declare -a SIMPARAMS=(); 
+
+for NGENE in $NGENES; do
+for NSAMPLE in $NSAMPLES; do
+for NCF in $NCFS; do
+for NCIS in $NCISS; do
+for NTF in $NTFS; do
+for NTRANS in $NTRANSS; do
+for NOISE_STD_SHAPE in $NOISE_STD_SHAPES; do
+for NOISE_STD_SCALE in $NOISE_STD_SCALES; do
+for CF_SPARSITY in $CF_SPARSITYS; do
+for CF_MEAN in $CF_MEANS; do
+for CF_STD in $CF_STDS; do
+for CIS_EFFECT in $CIS_EFFECTS; do
+for TF_CIS_SHAPE in $TF_CIS_SHAPES; do
+for TF_CIS_SCALE in $TF_CIS_SCALES; do
+for TF_TRANS_SHAPE in $TF_TRANS_SHAPES; do
+for TF_TRANS_SCALE in $TF_TRANS_SCALES; do
+    __PARAMS="${NGENE}_${NSAMPLE}_${NCF}_${NCIS}_${NTF}_${NTRANS}_${NOISE_STD_SHAPE}_${NOISE_STD_SCALE}_${CF_SPARSITY}_${CF_MEAN}_${CF_STD}_${CIS_EFFECT}_${TF_CIS_SHAPE}_${TF_CIS_SCALE}_${TF_TRANS_SHAPE}_${TF_TRANS_SCALE}"
+    SIMPARAMS+=( ${__PARAMS} )
+done
+done
+done
+done
+done
+done
+done
+done
+done
+done
+done
+done
+done
+done
+done
+done
+
+for variable in NGENE NSAMPLE NCF NCIS NTF NTRANS NOISE_STD_SHAPE NOISE_STD_SCALE CF_SPARSITY CF_MEAN CF_STD CIS_EFFECT TF_CIS_SHAPE TF_CIS_SCALE TF_TRANS_SHAPE TF_TRANS_SCALE; do
+    unset ${variable}
+done
