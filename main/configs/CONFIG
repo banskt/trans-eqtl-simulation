@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Input genotype data
+INPUT_GENO_FMT="/scratch/sbanerj/trans-eqtl/input/gtex/genotype/all_samples/GTEx_v6_imput_info04_HWEp1E6_PASS_dbSNP135_maf1_noindels_noambig_chr[CHRM]_WARNimputedmissing.vcf.gz"
+
 # Simulation parameters
 bGenerateData="true"
 NGENES="4000 2500"

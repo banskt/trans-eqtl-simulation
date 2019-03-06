@@ -1,0 +1,29 @@
+#!/bin/bash
+
+THISMETHOD="gendata"
+GENDATA_JOBNAME="${THISMETHOD}_${PARAMSTR}_sim${SIMINDEX}_${RANDSTRING}"
+
+SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}"
+SPECIFIC_OUTDIR=$( dirname $SIMGTFILE )
+
+if [ -d ${SPECIFIC_JOBSUBDIR} ]; then rm -rf ${SPECIFIC_JOBSUBDIR}; fi; mkdir -p ${SPECIFIC_JOBSUBDIR};
+if [ -d ${SPECIFIC_OUTDIR} ];    then rm -rf ${SPECIFIC_OUTDIR};    fi; mkdir -p ${SPECIFIC_OUTDIR};
+
+VCFFILES=""                                                                        
+for CHRM in {1..22}; do                                                
+    THISFILE=${INPUT_GENO_FMT/\[CHRM\]/${CHRM}}
+    VCFFILES="${VCFFILES} ${THISFILE}"
+done
+
+sed -e "s|_JOB_NAME|${GENDATA_JOBNAME}|g;
+        s|_PYT_ENV_|${PYTHON36}|g;
+        s|_SAMGT_PY|${SAMPLEGENOPY}|g;
+        s|_SIMGX_PY|${SIMULATEGXPY}|g;
+        s|_VCF_FLS_|\"${VCFFILES}\"|g;
+        s|_GTOT_FL_|${SIMGTFILE}|g;
+        s|_GXOT_FL_|${SIMGXFILE}|g;
+        s|_PRM_STR_|${PARAMSTR}|g;
+       " ${MASTER_BSUBDIR}/generate_data.bsub > ${SPECIFIC_JOBSUBDIR}/${GENDATA_JOBNAME}.bsub
+
+submit_job_echo ${SPECIFIC_JOBSUBDIR} ${GENDATA_JOBNAME} ${THISJOBDEPS}
+JOBDEPS=$( add_deps "${JOBDEPS}" ${GENDATA_JOBNAME} )

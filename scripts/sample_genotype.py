@@ -109,3 +109,10 @@ if __name__ == '__main__':
     with open(maffile, 'w') as outfile:
         for i, rsid in enumerate(rsidlist):
             outfile.write(f"{rsid}\t{maflist[i]:5.3f}\n")
+
+    shuffile = os.path.splitext(maffile)[0] + '.shuf'
+    donors = headers[-1].strip().split('\t')[9:]
+    random.shuffle(donors)
+    with open(shuffile, 'w') as outfile:
+        for donor in donors:
+            outfile.write(f"{donor}\n")

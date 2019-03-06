@@ -1,0 +1,61 @@
+#!/bin/sh
+#BSUB -q mpi-short
+#BSUB -W 2:00
+#BSUB -n 4
+#BSUB -R span[hosts=1]
+#BSUB -R scratch
+#BSUB -a openmp
+#BSUB -J _JOB_NAME
+#BSUB -o _JOB_NAME.out
+#BSUB -e _JOB_NAME.err
+
+MPYTHON=_PYT_ENV_
+SAMPLEGENOPY=_SAMGT_PY
+SIMULATEGXPY=_SIMGX_PY
+VCFFILES=_VCF_FLS_
+GTOUTFILE=_GTOT_FL_
+GXOUTFILE=_GXOT_FL_
+PARAMSTR=_PRM_STR_
+
+SIMPARAM=( ${PARAMSTR//_/\ } ); # convert the string to an array of parameters
+
+NGENE=${SIMPARAM[0]}
+NSAMPLE=${SIMPARAM[1]}
+NCF=${SIMPARAM[2]}
+NCIS=${SIMPARAM[3]}
+NTF=${SIMPARAM[4]}
+NTRANS=${SIMPARAM[5]}
+NOISE_STD_SHAPE=${SIMPARAM[6]}
+NOISE_STD_SCALE=${SIMPARAM[7]}
+CF_SPARSITY=${SIMPARAM[8]}
+CF_MEAN=${SIMPARAM[9]}
+CF_STD=${SIMPARAM[10]}
+CIS_EFFECT=${SIMPARAM[11]}
+TF_CIS_SHAPE=${SIMPARAM[12]}
+TF_CIS_SCALE=${SIMPARAM[13]}
+TF_TRANS_SHAPE=${SIMPARAM[14]}
+TF_TRANS_SCALE=${SIMPARAM[15]}
+
+${MPYTHON} ${SAMPLEGENOPY} -n ${NGENE} \
+                             --input ${VCFFILES} \
+                             --out ${GTOUTFILE}
+
+${MPYTHON} ${SIMULATEGXPY} -n ${NGENE} \
+                               -s ${NSAMPLE} \
+                               -f ${NCF} \
+                               -c ${NCIS} \
+                               -t ${NTF} \
+                               -g ${NTRANS} \
+                               --noise ${NOISE_STD_SHAPE} ${NOISE_STD_SCALE} \
+                               --cf ${CF_SPARSITY} ${CF_MEAN} ${CF_STD} \
+                               --cis ${CIS_EFFECT} \
+                               --tfcis ${TF_CIS_SHAPE} ${TF_CIS_SCALE} \
+                               --tftrans ${TF_TRANS_SHAPE} ${TF_TRANS_SCALE} \
+                               --geno ${GTOUTFILE} \
+                               --out ${GXOUTFILE}
+
+
+### For debug on interactive shell
+### ${MPYTHON} ${SAMPLEGENOPY} -n ${NGENE} --input ${VCFFILES} --out ${GTOUTFILE}
+### ${MPYTHON} ${SIMULATEGXPY} -n ${NGENE} -s ${NSAMPLE} -f ${NCF} -c ${NCIS} -t ${NTF} -g ${NTRANS} --noise ${NOISE_STD_SHAPE} ${NOISE_STD_SCALE} --cf ${CF_SPARSITY} ${CF_MEAN} ${CF_STD} --cis ${CIS_EFFECT} --tfcis ${TF_CIS_SHAPE} ${TF_CIS_SCALE} --tftrans ${TF_TRANS_SHAPE} ${TF_TRANS_SCALE} --geno ${GTOUTFILE} --out ${GXOUTFILE}
+
