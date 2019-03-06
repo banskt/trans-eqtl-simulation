@@ -25,5 +25,5 @@ sed -e "s|_JOB_NAME|${GENDATA_JOBNAME}|g;
         s|_PRM_STR_|${PARAMSTR}|g;
        " ${MASTER_BSUBDIR}/generate_data.bsub > ${SPECIFIC_JOBSUBDIR}/${GENDATA_JOBNAME}.bsub
 
-submit_job_echo ${SPECIFIC_JOBSUBDIR} ${GENDATA_JOBNAME} ${THISJOBDEPS}
-JOBDEPS=$( add_deps "${JOBDEPS}" ${GENDATA_JOBNAME} )
+submit_job ${SPECIFIC_JOBSUBDIR} ${GENDATA_JOBNAME} None # no job dependencies
+GENDATA_JOBDEPS=$( add_deps "${GENDATA_JOBDEPS}" ${GENDATA_JOBNAME} )

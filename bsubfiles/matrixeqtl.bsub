@@ -1,0 +1,38 @@
+#!/bin/sh
+#BSUB -q mpi-short
+#BSUB -W 2:00
+#BSUB -n 8
+#BSUB -R span[hosts=1]
+#BSUB -R scratch
+#BSUB -a openmp
+#BSUB -J _JOB_NAME
+#BSUB -o _JOB_NAME.out
+#BSUB -e _JOB_NAME.err
+
+module load R/3.4.1
+
+SCRIPT=_MEQTL_R_
+GTFILE=_GT_FILE_
+GENPOSFILE=_GEN_POSF
+EXPRFILE=_EXPR_FL_
+CISPVAL=_PTHR_CIS
+TRANSPVAL=_PTHR_TRA
+OUTFILECIS=_OUTF_CIS
+OUTFILETRANS=_OUTF_TRA
+CISWINDOW=_CIS_WIN_
+MATRIXEQTLMODEL=_MEQTLMOD
+EXTRAFLAGS=_EXT_FLAG
+
+
+Rscript ${SCRIPT} --genotype ${GTFILE} \
+                  --geneinfo ${GENPOSFILE} \
+                  --expression ${EXPRFILE} \
+                  --pvalcis ${CISPVAL} \
+                  --pvaltrans ${TRANSPVAL} \
+                  --outfilecis ${OUTFILECIS} \
+                  --outfiletrans ${OUTFILETRANS} \
+                  --window ${CISWINDOW} \
+                  --model ${MATRIXEQTLMODEL} \
+                  ${EXTRAFLAGS}
+
+## Rscript ${SCRIPT} --genotype ${GTFILE} --geneinfo ${GENPOSFILE} --datatype ${DATATYPE} --expression ${EXPRFILE} --pvalcis ${CISPVAL} --pvaltrans ${TRANSPVAL} --outfilecis ${OUTFILECIS} --outfiletrans ${OUTFILETRANS} --window ${CISWINDOW} --model ${MATRIXEQTLMODEL} ${EXTRAFLAGS}

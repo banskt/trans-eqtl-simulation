@@ -4,13 +4,13 @@
 INPUT_GENO_FMT="/scratch/sbanerj/trans-eqtl/input/gtex/genotype/all_samples/GTEx_v6_imput_info04_HWEp1E6_PASS_dbSNP135_maf1_noindels_noambig_chr[CHRM]_WARNimputedmissing.vcf.gz"
 
 # Simulation parameters
-bGenerateData="true"
-NGENES="4000 2500"
+bGenerateData="false"
+NGENES="4000"
 NSAMPLES="450"
-NCFS="20 30"
+NCFS="20"
 NCISS="800"
 NTFS="30"
-NTRANSS="150 75"
+NTRANSS="150"
 NOISE_STD_SHAPES="100"
 NOISE_STD_SCALES="0.01"
 CF_SPARSITYS="0.5"
@@ -24,13 +24,14 @@ TF_TRANS_SCALES="0.02"
 
 # Simulation controls
 STARTSIM=0
-NSIM=2
+NSIM=10
 
 # MatrixEQTL options
 bMatrixEqtl=true                        # run the method if true
 bMEqtlRandom=true                       # run the method if true
 MEQTL_PVALTHRES_CIS=0.001
 MEQTL_PVALTHRES_TRANS=0.001
+MEQTL_CIS_WINDOW=0
 MATRIXEQTL_MODEL="modelLINEAR"
 
 # TEJAAS options

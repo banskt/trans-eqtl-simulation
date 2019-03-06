@@ -56,8 +56,6 @@ option_list = list(
               help="path to selected donor ids file", metavar="character"),
     make_option(c("-i", "--geneinfo"), type="character", default=NULL,
               help="path to gene info file name", metavar="character"),
-    make_option(c("-s", "--datatype"), type="character", default=NULL,
-              help="type of dataset [gtex, cardiogenics]", metavar="character"),
     make_option(c("-e", "--expression"), type="character", default=NULL,
               help="path to gene expression file name", metavar="character"),
     make_option(c("-p", "--pvalcis"), type="numeric", default=1e-3,
@@ -158,14 +156,6 @@ if (is.null(opt$covariates)) {
         cvrt$LoadFile(opt$covariates);
     }
 }
-
-if (opt$datatype == "cardiogenics") {
-    #trim genepos ensembl ids
-    ensembls = sapply(genepos$geneid, function(x){strsplit(x, '.', fixed=T)})
-    ensembls = as.character(sapply(ensembls, "[[", 1))
-    genepos$geneid = ensembls
-}
-
 
 # Only associations significant at this level will be saved
 pvOutputThreshold_cis = opt$pvalcis;

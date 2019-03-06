@@ -1,0 +1,64 @@
+#!/bin/bash
+
+THISMETHOD="tejaas"
+THISJOBDEPS=${GENDATA_JOBDEPS}
+
+echo "Submitting TEJAAS jobs with RUNJPA=$RUNJPA and SHUFFLE=$SHUFFLE"
+source ${UTILSDIR}/submit_tejaas
+
+EXTRAFLAGS="--trim --cismask"
+if [ "${SHUFFLE}" = "true" ]; then
+    THISMETHOD="tejaas_rand"
+    SHUFFLED_ID_FILE=${SIMGTFILE/\.vcf\.gz/\.shuf}
+    EXTRAFLAGS="$EXTRAFLAGS --shuffle-with $SHUFFLED_ID_FILE"
+    SHUFFLE=false
+fi
+
+MAF_FILE=${SIMGTFILE/\.vcf\.gz/\.altfreq}
+GENEINFOFILE=${SIMGXFILE/\.txt/\.gt\.gz}
+
+if [ "${RUNJPA}" = "true" ]; then
+    METHOD_VARIANT="jpa"
+    SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
+    SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
+
+    JOBPREFIX="${THISMETHOD}_${METHOD_VARIANT}_${PARAMSTR}_sim${SIMINDEX}_${RANDSTRING}"
+
+    submit_tejaas ${PYTHON36} ${TEJAASPY} ${SIMGTFILE} ${SIMGXFILE} \
+                  ${GENEINFOFILE} ${MAF_FILE} \
+                  jpa perm \
+                  ${TEJAAS_SNPS_THRES} ${TEJAAS_GENE_THRES} 0.01 \
+                  "${EXTRAFLAGS}" \
+                  ${SPECIFIC_JOBSUBDIR} ${SPECIFIC_OUTDIR} ${JOBPREFIX} \
+                  ${MAX_NSNP_PERJOB} \
+                  ${THISJOBDEPS} ${MASTER_BSUBDIR} \
+                  TEJAAS_JOBDEPS "${TEJAAS_JOBDEPS}"
+
+else
+    for NULL in ${TEJAAS_NULL}; do
+        if [ ${NULL} == "perm" ]; then TEJAAS_SIGMA_BETA=${TEJAAS_SIGMA_BETA_PERM}; fi
+        if [ ${NULL} == "maf" ]; then TEJAAS_SIGMA_BETA=${TEJAAS_SIGMA_BETA_MAF}; fi
+        for SBETA in ${TEJAAS_SIGMA_BETA}; do
+
+            METHOD_VARIANT="${NULL}null_sb${SBETA}"
+            SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
+            SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
+
+            JOBPREFIX="${THISMETHOD}_${METHOD_VARIANT}_${PARAMSTR}_sim${SIMINDEX}_${RANDSTRING}"
+
+            submit_tejaas ${PYTHON36} ${TEJAASPY} ${SIMGTFILE} ${SIMGXFILE} \
+                          ${GENEINFOFILE} ${MAF_FILE} \
+                          ${TEJAAS_MODEL} ${NULL} \
+                          ${TEJAAS_SNPS_THRES} ${TEJAAS_GENE_THRES} ${SBETA}\
+                          "${EXTRAFLAGS}" \
+                          ${SPECIFIC_JOBSUBDIR} ${SPECIFIC_OUTDIR} ${JOBPREFIX} \
+                          ${MAX_NSNP_PERJOB} \
+                          ${THISJOBDEPS} ${MASTER_BSUBDIR} \
+                          TEJAAS_JOBDEPS "${TEJAAS_JOBDEPS}"
+
+        done
+    done
+
+fi
+
+RUNJPA=false

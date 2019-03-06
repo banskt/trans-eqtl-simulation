@@ -56,6 +56,9 @@ def get_snps(filename, n, rsidlist):
     lines = list()
     mafs = list()
     rsids = list()
+    chrms = list()
+    bpposs = list()
+    alleles = list()
     with gzip.open(filename, 'r') as vcfstream:
         for line in vcfstream:
             linestrip = line.decode().strip()
@@ -70,7 +73,10 @@ def get_snps(filename, n, rsidlist):
                     ds_notna = [float(x) for x in ds if x != "."]
                     maf = sum(ds_notna) / 2.0 / len(ds_notna)
                     mafs.append(maf)
-    return lines, mafs, rsids
+                    chrms.append(linesplit[0])
+                    bpposs.append(linesplit[1])
+                    alleles.append(f"{linesplit[2]} {linesplit[3]}")
+    return lines, mafs, rsids, chrms, bpposs, alleles
 
 
 if __name__ == '__main__':
@@ -79,8 +85,12 @@ if __name__ == '__main__':
     
     nsnps = list()
     allrsid = list()
-    maflist = list()
     rsidlist = list()
+
+    maflist = list()
+    chrlist = list()
+    bplist = list()
+    allelelist = list()
 
     for vcfgz_file in opts.vcfgz_files:
         n, rsids = meta_info(vcfgz_file)
@@ -99,16 +109,19 @@ if __name__ == '__main__':
         for line in headers:
             outfile.write(line.encode('utf-8'))
         for i, vcfgz_file in enumerate(opts.vcfgz_files):
-            snplines, mafs, rsids = get_snps(vcfgz_file, nselect[i], allrsid[i])
+            snplines, mafs, rsids, chrms, bpposs, alleles = get_snps(vcfgz_file, nselect[i], allrsid[i])
             for i, line in enumerate(snplines):
                 outfile.write(line.encode('utf-8'))
                 maflist.append(mafs[i])
                 rsidlist.append(rsids[i])
+                chrlist.append(chrms[i])
+                bplist.append(bpposs[i])
+                allelelist.append(alleles[i])
 
     maffile = os.path.splitext(os.path.splitext(opts.outfile)[0])[0] + '.altfreq' # split .gz and then .vcf
     with open(maffile, 'w') as outfile:
         for i, rsid in enumerate(rsidlist):
-            outfile.write(f"{rsid}\t{maflist[i]:5.3f}\n")
+            outfile.write(f"{chrlist[i]} {bplist[i]} {rsid} {allelelist[i]} {maflist[i]:5.3f}\n")
 
     shuffile = os.path.splitext(maffile)[0] + '.shuf'
     donors = headers[-1].strip().split('\t')[9:]
