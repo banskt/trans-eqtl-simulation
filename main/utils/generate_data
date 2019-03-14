@@ -15,6 +15,9 @@ for CHRM in {1..22}; do
     VCFFILES="${VCFFILES} ${THISFILE}"
 done
 
+GXCORFILE=""
+if [ "${bUseGtexCorr}" = "true" ]; then GXCORFILE=${GTEX_CORR_FILE}; fi
+
 sed -e "s|_JOB_NAME|${GENDATA_JOBNAME}|g;
         s|_PYT_ENV_|${PYTHON36}|g;
         s|_SAMGT_PY|${SAMPLEGENOPY}|g;
@@ -23,6 +26,7 @@ sed -e "s|_JOB_NAME|${GENDATA_JOBNAME}|g;
         s|_GTOT_FL_|${SIMGTFILE}|g;
         s|_GXOT_FL_|${SIMGXFILE}|g;
         s|_PRM_STR_|${PARAMSTR}|g;
+        s|_GX_CORR_|\"${GXCORFILE}\"|g
        " ${MASTER_BSUBDIR}/generate_data.bsub > ${SPECIFIC_JOBSUBDIR}/${GENDATA_JOBNAME}.bsub
 
 submit_job ${SPECIFIC_JOBSUBDIR} ${GENDATA_JOBNAME} None # no job dependencies

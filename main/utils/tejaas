@@ -15,24 +15,35 @@ if [ "${SHUFFLE}" = "true" ]; then
 fi
 
 MAF_FILE=${SIMGTFILE/\.vcf\.gz/\.altfreq}
-GENEINFOFILE=${SIMGXFILE/\.txt/\.gt\.gz}
+GENEINFOFILE=${SIMGXFILE/\.txt/\.gtf\.gz}
 
 if [ "${RUNJPA}" = "true" ]; then
     METHOD_VARIANT="jpa"
     SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
     SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
 
+    if [ -d ${SPECIFIC_JOBSUBDIR} ]; then rm -rf ${SPECIFIC_JOBSUBDIR}; fi; mkdir -p ${SPECIFIC_JOBSUBDIR}
+    if [ ! -d ${SPECIFIC_OUTDIR} ];  then mkdir -p ${SPECIFIC_OUTDIR}; fi
+
+    NULLSCORE_FILE="${SPECIFIC_OUTDIR}/null_scores.txt"
     JOBPREFIX="${THISMETHOD}_${METHOD_VARIANT}_${PARAMSTR}_sim${SIMINDEX}_${RANDSTRING}"
 
-    submit_tejaas ${PYTHON36} ${TEJAASPY} ${SIMGTFILE} ${SIMGXFILE} \
-                  ${GENEINFOFILE} ${MAF_FILE} \
-                  jpa perm \
-                  ${TEJAAS_SNPS_THRES} ${TEJAAS_GENE_THRES} 0.01 \
-                  "${EXTRAFLAGS}" \
-                  ${SPECIFIC_JOBSUBDIR} ${SPECIFIC_OUTDIR} ${JOBPREFIX} \
-                  ${MAX_NSNP_PERJOB} \
-                  ${THISJOBDEPS} ${MASTER_BSUBDIR} \
-                  TEJAAS_JOBDEPS "${TEJAAS_JOBDEPS}"
+    sed "s|_JOB_NAME|${JOBPREFIX}|g;
+         s|_PYT_ENV_|${PYTHON36}|g;
+         s|_TEJ_PYT_|${TEJAASPY}|g;
+         s|_TEJ_NUL_|${TEJAASNULL}|g;
+         s|_GT_FILE_|${SIMGTFILE}|g;
+         s|_EXPR_FL_|${SIMGXFILE}|g;
+         s|_GEN_POSF|${GENEINFOFILE}|g;
+         s|_OUT_PRFX|${SPECIFIC_OUTDIR}/all|g;
+         s|_NUL_FIL_|${NULLSCORE_FILE}|g;
+         s|_CIS_WIN_|0|g;
+         s|_EXT_FLAG|\"${EXTRAFLAGS}\"|g;
+        " ${MASTER_BSUBDIR}/jpa.bsub > ${SPECIFIC_JOBSUBDIR}/${JOBPREFIX}.bsub
+
+    submit_job ${SPECIFIC_JOBSUBDIR} ${JOBPREFIX} ${THISJOBDEPS}
+    TEJAAS_JOBDEPS=$( add_deps "${TEJAAS_JOBDEPS}" ${JOBPREFIX} )
+
 
 else
     for NULL in ${TEJAAS_NULL}; do

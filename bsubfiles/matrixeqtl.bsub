@@ -23,6 +23,7 @@ CISWINDOW=_CIS_WIN_
 MATRIXEQTLMODEL=_MEQTLMOD
 EXTRAFLAGS=_EXT_FLAG
 
+export MP_NUM_THREADS=8
 
 Rscript ${SCRIPT} --genotype ${GTFILE} \
                   --geneinfo ${GENPOSFILE} \
@@ -35,4 +36,4 @@ Rscript ${SCRIPT} --genotype ${GTFILE} \
                   --model ${MATRIXEQTLMODEL} \
                   ${EXTRAFLAGS}
 
-## Rscript ${SCRIPT} --genotype ${GTFILE} --geneinfo ${GENPOSFILE} --datatype ${DATATYPE} --expression ${EXPRFILE} --pvalcis ${CISPVAL} --pvaltrans ${TRANSPVAL} --outfilecis ${OUTFILECIS} --outfiletrans ${OUTFILETRANS} --window ${CISWINDOW} --model ${MATRIXEQTLMODEL} ${EXTRAFLAGS}
+## Rscript ${SCRIPT} --genotype ${GTFILE} --geneinfo ${GENPOSFILE} --expression ${EXPRFILE} --pvalcis ${CISPVAL} --pvaltrans ${TRANSPVAL} --outfilecis ${OUTFILECIS} --outfiletrans ${OUTFILETRANS} --window ${CISWINDOW} --model ${MATRIXEQTLMODEL} ${EXTRAFLAGS}

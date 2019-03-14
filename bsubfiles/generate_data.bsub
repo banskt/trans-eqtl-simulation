@@ -1,13 +1,18 @@
 #!/bin/sh
 #BSUB -q mpi-short
 #BSUB -W 2:00
-#BSUB -n 4
+#BSUB -n 8
 #BSUB -R span[hosts=1]
 #BSUB -R scratch
 #BSUB -a openmp
 #BSUB -J _JOB_NAME
 #BSUB -o _JOB_NAME.out
 #BSUB -e _JOB_NAME.err
+
+module load intel/compiler/64/2017/17.0.2
+module load intel/mkl/64/2017/2.174
+
+export OMP_NUM_THREADS=8
 
 MPYTHON=_PYT_ENV_
 SAMPLEGENOPY=_SAMGT_PY
@@ -16,6 +21,7 @@ VCFFILES=_VCF_FLS_
 GTOUTFILE=_GTOT_FL_
 GXOUTFILE=_GXOT_FL_
 PARAMSTR=_PRM_STR_
+GXCORRFILE=_GX_CORR_
 
 SIMPARAM=( ${PARAMSTR//_/\ } ); # convert the string to an array of parameters
 
@@ -36,6 +42,9 @@ TF_CIS_SCALE=${SIMPARAM[13]}
 TF_TRANS_SHAPE=${SIMPARAM[14]}
 TF_TRANS_SCALE=${SIMPARAM[15]}
 
+CORR_OPTION=""
+if [ ! -z ${GXCORRFILE} ]; then CORR_OPTION="--gxcorr ${GXCORRFILE}"; fi
+
 ${MPYTHON} ${SAMPLEGENOPY} -n ${NGENE} \
                              --input ${VCFFILES} \
                              --out ${GTOUTFILE}
@@ -52,10 +61,11 @@ ${MPYTHON} ${SIMULATEGXPY} -n ${NGENE} \
                                --tfcis ${TF_CIS_SHAPE} ${TF_CIS_SCALE} \
                                --tftrans ${TF_TRANS_SHAPE} ${TF_TRANS_SCALE} \
                                --geno ${GTOUTFILE} \
-                               --out ${GXOUTFILE}
+                               --out ${GXOUTFILE} \
+                               ${CORR_OPTION}
 
 
 ### For debug on interactive shell
 ### ${MPYTHON} ${SAMPLEGENOPY} -n ${NGENE} --input ${VCFFILES} --out ${GTOUTFILE}
-### ${MPYTHON} ${SIMULATEGXPY} -n ${NGENE} -s ${NSAMPLE} -f ${NCF} -c ${NCIS} -t ${NTF} -g ${NTRANS} --noise ${NOISE_STD_SHAPE} ${NOISE_STD_SCALE} --cf ${CF_SPARSITY} ${CF_MEAN} ${CF_STD} --cis ${CIS_EFFECT} --tfcis ${TF_CIS_SHAPE} ${TF_CIS_SCALE} --tftrans ${TF_TRANS_SHAPE} ${TF_TRANS_SCALE} --geno ${GTOUTFILE} --out ${GXOUTFILE}
+### ${MPYTHON} ${SIMULATEGXPY} -n ${NGENE} -s ${NSAMPLE} -f ${NCF} -c ${NCIS} -t ${NTF} -g ${NTRANS} --noise ${NOISE_STD_SHAPE} ${NOISE_STD_SCALE} --cf ${CF_SPARSITY} ${CF_MEAN} ${CF_STD} --cis ${CIS_EFFECT} --tfcis ${TF_CIS_SHAPE} ${TF_CIS_SCALE} --tftrans ${TF_TRANS_SHAPE} ${TF_TRANS_SCALE} --geno ${GTOUTFILE} --out ${GXOUTFILE} ${CORR_OPTION}
 

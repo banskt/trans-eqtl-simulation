@@ -90,6 +90,13 @@ def parse_args():
                         help = 'Sparsity (pi), mean (mu) and standard deviation (sigma) for the spike-and-slab distribution from which effects of CF are sampled ')
 
 
+    parser.add_argument('--gxcorr',
+                        type = str,
+                        dest = 'gxcorr_file',
+                        metavar = 'FILE',
+                        help = 'Numpy file (.npy) for Q @ sqrt(W) matrix for generating background expression with covariance S, where S = Q @ W @ Q*')
+
+
     parser.add_argument('--noise',
                         nargs = 2,
                         type = float,
@@ -146,6 +153,7 @@ def sample_sign(n):
     return np.random.choice([-1, 1], size=n, p=[0.5, 0.5])
 
 
+# Simulate noise for n genes and s samples.
 def simulate_noise(n, s, params):
     X = np.zeros((n, s))
     sigma = np.random.gamma(params[0], params[1], size = n)
@@ -153,7 +161,7 @@ def simulate_noise(n, s, params):
         X[i, :] = np.random.normal(0, sigma[i], size = s)
     return X
 
-
+# Simulate f counfounding factors for n genes and s samples
 def simulate_confounders(n, s, f, params):
     CF = np.zeros((f, s))
     beta = np.zeros((n, f))
@@ -162,6 +170,13 @@ def simulate_confounders(n, s, f, params):
         beta[:, i] = spike_and_slab(params[0], params[1], params[2], size = n)
     X = np.einsum('ij, jk', beta, CF)
     return X, CF, beta
+
+
+def sample_correlation(corrfile, n, s):
+    Xrand = np.random.normal(0, 1, size = s * n).reshape(n, s)
+    QsqrtW = np.load(corrfile)
+    X = np.dot(QsqrtW, Xrand)
+    return Xrand, X 
 
 
 def simulate_cis(GT, icis, itf, cisparams, tfparams):
@@ -187,8 +202,24 @@ def simulate_trans(GX, itf, itrans, params):
     return X, btrans
 
 
+def normalize_expr(Y):
+    # requires a G x N matrix, where G is the number of genes, and Y is the number of samples
+    newY = (Y - np.mean(Y, axis = 1).reshape(-1, 1)) / np.std(Y, axis = 1).reshape(-1, 1)
+    return newY
+
+
 def write_expression(GX, donors, filename):
     with open(filename, 'w') as fout:
+        header = 'gene_ids\t' + '\t'.join(donors) + '\n'
+        fout.write(header)
+        for i in range(GX.shape[0]):
+            line = 'ENSG{:06d}\t'.format(i) + '\t'.join(['{:g}'.format(x) for x in GX[i, :]]) + '\n'
+            fout.write(line)
+
+
+def write_background(GX, donors, filename):
+    bg_filename = os.path.splitext(filename)[0] + '.bground'
+    with open(bg_filename, 'w') as fout:
         header = 'gene_ids\t' + '\t'.join(donors) + '\n'
         fout.write(header)
         for i in range(GX.shape[0]):
@@ -213,7 +244,6 @@ def write_gtf(snpinfo, filename):
             fout.write(line.encode('utf-8'))
             line = "ENSG{:06d}\tchr{:d}\t{:d}\t{:d}\n".format(i, chrm, start, end)
             fposout.write(line)
-        
 
 
 def write_eQTLs(snpinfo, cis_genes, tf_genes, trans_genes, filename):
@@ -319,29 +349,41 @@ if __name__ == '__main__':
     nontf_genes = np.array([i for i in range(opts.ngene) if i not in tf_genes])
     trans_genes = [np.sort(np.random.choice(nontf_genes, opts.ntrans, replace=False)) for i in tf_genes]
 
-    # Simulate noise
-    GX_noise = simulate_noise(opts.ngene, opts.nsample, opts.noise_params)
-
-    # Simulate CF
-    GX_cf, confounders, cf_effectsize = simulate_confounders (opts.ngene, opts.nsample, opts.ncf, opts.cf_params)
+    # Simulate noise and CF
+    if opts.gxcorr_file is None:
+        print ("Generating noise and confounder from prior distributions using supplied options.")
+        GX_noise = simulate_noise(opts.ngene, opts.nsample, opts.noise_params)
+        GX_cf, confounders, cf_effectsize = simulate_confounders (opts.ngene, opts.nsample, opts.ncf, opts.cf_params)
+    else:
+        print ("Generating background gene expression by sampling GTEx data")
+        GX_noise, GX_cf = sample_correlation(opts.gxcorr_file, opts.ngene, opts.nsample)
 
     # Simulate cis-effects
     GX_cis, cis_effectsize = simulate_cis (GT, cis_genes, tf_genes, opts.cis_params, opts.tfcis_params)
 
     # Sum expression components
-    GX_tmp = GX_noise + GX_cf + GX_cis
+    if opts.gxcorr_file is None:
+        print ("Summing noise, confounders and cis-effects")
+        GX_tmp = GX_noise + GX_cf + GX_cis
+    else:
+        print ("Summing background and cis-effects")
+        GX_tmp = GX_cf + GX_cis
 
     # Simulate trans-effects
     GX_trans, trans_effectsize = simulate_trans (GX_tmp, tf_genes, trans_genes, opts.tftrans_params)
 
-    # Total gene expression
-    GX = GX_tmp + GX_trans
+    # Total normalized gene expression
+    GX_raw = GX_tmp + GX_trans
+    GX = normalize_expr(GX_raw)
 
     # Output
     write_expression(GX, readvcf.donor_ids, opts.outfile)
     write_gtf(readvcf.snpinfo, opts.outfile)
     write_eQTLs(readvcf.snpinfo, cis_genes, tf_genes, trans_genes, opts.outfile)
-    write_confounders(confounders, cf_effectsize, readvcf.donor_ids, opts.outfile)
+    if opts.gxcorr_file is None:
+        write_confounders(confounders, cf_effectsize, readvcf.donor_ids, opts.outfile)
+    else:
+        write_background(GX_cf, readvcf.donor_ids, opts.outfile)
     write_ciseffects(cis_effectsize, cis_genes, opts.outfile)
     write_transeffects(trans_effectsize, tf_genes, opts.outfile)
 
@@ -361,7 +403,7 @@ if __name__ == '__main__':
     xmin = -xmax
     
     ymax = plot_components(ax4, GX_cf   [:ngene_plot, :], xmax, xmin, nbin, ninterp, 'Confounding')
-    _    = plot_components(ax1, GX      [:ngene_plot, :], xmax, xmin, nbin, ninterp, 'Total - with trans', ymax = ymax)
+    _    = plot_components(ax1, GX_raw  [:ngene_plot, :], xmax, xmin, nbin, ninterp, 'Total - with trans', ymax = ymax)
     _    = plot_components(ax2, GX_tmp  [:ngene_plot, :], xmax, xmin, nbin, ninterp, 'Total - without trans', ymax = ymax)
     _    = plot_components(ax3, GX_noise[:ngene_plot, :], xmax, xmin, nbin, ninterp, 'Noise', ymax = ymax)
     _    = plot_components(ax5, GX_cis  [:ngene_plot, :], xmax, xmin, nbin, ninterp, 'Cis', ymax = 1.0)

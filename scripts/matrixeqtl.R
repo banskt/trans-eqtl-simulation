@@ -94,6 +94,7 @@ output_file_name_tra = opt$outfiletrans;
 
 SNP_file_name = opt$genotype;
 res = read_vcf(SNP_file_name);
+message("Completed reading genotype")
 snps_mat = res[[1]] #genotype matrix
 snpspos  = res[[2]] #SNP position info
 
