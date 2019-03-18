@@ -37,7 +37,7 @@ for PARAMSTR in ${SIMPARAMS[@]}; do
         SIMGTFILE="${OUTDIR_SIM}/input/genotype.vcf.gz"
         SIMGXFILE="${OUTDIR_SIM}/input/expression.txt"
 
-        echo $SIMINDEX
+        #echo $SIMINDEX
         if [ "${bGenerateData}" = "true" ]; then source ${UTILSDIR}/generate_data; fi
         if [ "${bMatrixEqtl}" = "true" ];  then source ${UTILSDIR}/matrix_eqtl; fi
         if [ "${bMEqtlRandom}" = "true" ]; then SHUFFLE=true; source ${UTILSDIR}/matrix_eqtl; fi
