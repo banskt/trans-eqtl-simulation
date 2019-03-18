@@ -48,6 +48,6 @@ for PARAMSTR in ${SIMPARAMS[@]}; do
 
     done
 
-    #if [ "${bValidationPlot}" = "true" ]; then source ${UTILSDIR}/validation_plot; fi
+    if [ "${bValidationPlot}" = "true" ]; then source ${UTILSDIR}/validation_plot; fi
 
 done
