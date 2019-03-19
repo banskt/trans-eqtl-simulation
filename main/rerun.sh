@@ -10,7 +10,8 @@ while read ERRFILE; do
         #mv ${JOBNAME}.err ${JOBNAME}.err_8core
         #mv ${JOBNAME}.out ${JOBNAME}.out_8core
         #rm -rf ${JOBNAME}.err ${JOBNAME}.out
-        sed -e "s|-n\ 8|-n\ 16|g" ${JOBNAME}.bsub > ${JOBNAME}_16core.bsub
-        bsub < ${JOBNAME}_16core.bsub
+        #sed -e "s|-n\ 8|-n\ 16|g" ${JOBNAME}.bsub > ${JOBNAME}_16core.bsub
+        #bsub < ${JOBNAME}_16core.bsub
+        wc -l ${JOBNAME}.err 
     cd $CURDIR
 done < jpa_error_files.txt

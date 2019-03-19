@@ -62,7 +62,7 @@ def banskt_presentation(black = '#333333', linewidth = 2, ticksize = 8, fontsize
     matplotlib.rcParams['legend.markerscale'] = 1.0
     # Dimensions as fraction of fontsize
     matplotlib.rcParams['legend.borderpad'] = 0
-    matplotlib.rcParams['legend.labelspacing'] = 0.3
+    matplotlib.rcParams['legend.labelspacing'] = 0.8
     matplotlib.rcParams['legend.handlelength'] = 0.5
     matplotlib.rcParams['legend.handleheight'] = 0.9
     matplotlib.rcParams['legend.handletextpad'] = 0.5

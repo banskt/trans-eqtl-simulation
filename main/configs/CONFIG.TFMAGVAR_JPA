@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Simulation parameters
-bGenerateData=true
+bGenerateData=false
 bUseGtexCorr=true
 NGENES="15158"
 NSAMPLES="450"
@@ -25,7 +25,7 @@ STARTSIM=0
 NSIM=20
 
 # MatrixEQTL options
-bMatrixEqtl=true                        # run the method if true
+bMatrixEqtl=false                        # run the method if true
 bMEqtlRandom=false                      # run the method if true
 MEQTL_PVALTHRES_CIS=0.001
 MEQTL_PVALTHRES_TRANS=0.001
@@ -33,7 +33,7 @@ MEQTL_CIS_WINDOW=0
 MATRIXEQTL_MODEL="modelLINEAR"
 
 # TEJAAS options
-bTejaas=true                            # run the method if true
+bTejaas=false                            # run the method if true
 bTjsRandom=false
 TEJAAS_MODEL="jpa-rr"                   # only one model allowed
 TEJAAS_NULL="perm"                      # list of null models
