@@ -39,15 +39,14 @@ for PARAMSTR in ${SIMPARAMS[@]}; do
 
         #echo $SIMINDEX
         if [ "${bGenerateData}" = "true" ]; then source ${UTILSDIR}/generate_data; fi
-        if [ "${bMatrixEqtl}" = "true" ];  then source ${UTILSDIR}/matrix_eqtl; fi
-        if [ "${bMEqtlRandom}" = "true" ]; then SHUFFLE=true; source ${UTILSDIR}/matrix_eqtl; fi
-        if [ "${bTejaas}" = "true" ];      then source ${UTILSDIR}/tejaas; fi
-        if [ "${bTjsRandom}" = "true" ];   then SHUFFLE=true; source ${UTILSDIR}/tejaas; fi
-        if [ "${bTejaasJPA}" = "true" ];   then RUNJPA=true; source ${UTILSDIR}/tejaas; fi
-        if [ "${bJPARandom}" = "true" ];   then SHUFFLE=true; RUNJPA=true; source ${UTILSDIR}/tejaas; fi
 
+        for NPEER in ${NPEERCORR}; do
+            if [ "${bMatrixEqtl}" = "true" ];  then source ${UTILSDIR}/matrix_eqtl; fi
+            if [ "${bMEqtlRandom}" = "true" ]; then SHUFFLE=true; source ${UTILSDIR}/matrix_eqtl; fi
+            if [ "${bTejaas}" = "true" ];      then source ${UTILSDIR}/tejaas; fi
+            if [ "${bTjsRandom}" = "true" ];   then SHUFFLE=true; source ${UTILSDIR}/tejaas; fi
+            if [ "${bTejaasJPA}" = "true" ];   then RUNJPA=true; source ${UTILSDIR}/tejaas; fi
+            if [ "${bJPARandom}" = "true" ];   then SHUFFLE=true; RUNJPA=true; source ${UTILSDIR}/tejaas; fi
+        done
     done
-
-    if [ "${bValidationPlot}" = "true" ]; then source ${UTILSDIR}/validation_plot; fi
-
 done

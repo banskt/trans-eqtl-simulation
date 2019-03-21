@@ -17,8 +17,18 @@ fi
 MAF_FILE=${SIMGTFILE/\.vcf\.gz/\.altfreq}
 GENEINFOFILE=${SIMGXFILE/\.txt/\.gtf\.gz}
 
+INPUTGXFILE="${SIMGXFILE}"
+if [ ! "${NPEER}" == "0" ]; then
+    __DIR=$( dirname ${SIMGXFILE} )
+    __FIL=$( basename ${SIMGXFILE} )
+    __PRF="${__FIL%%.*}_${NPEER}"
+    INPUTGXFILE="${__DIR}/${__PRF}_PEER_residuals.txt"
+fi
+
 if [ "${RUNJPA}" = "true" ]; then
     METHOD_VARIANT="jpa"
+    #SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/npeer${NPEER}"
+    #SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/npeer${NPEER}"
     SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
     SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
 
@@ -26,14 +36,14 @@ if [ "${RUNJPA}" = "true" ]; then
     if [ ! -d ${SPECIFIC_OUTDIR} ];  then mkdir -p ${SPECIFIC_OUTDIR}; fi
 
     NULLSCORE_FILE="${SPECIFIC_OUTDIR}/null_scores.txt"
-    JOBPREFIX="${THISMETHOD}_${METHOD_VARIANT}_${PARAMSTR}_sim${SIMINDEX}_${RANDSTRING}"
+    JOBPREFIX="${THISMETHOD}_${METHOD_VARIANT}_${PARAMSTR}_sim${SIMINDEX}_npeer${NPEER}_${RANDSTRING}"
 
     sed "s|_JOB_NAME|${JOBPREFIX}|g;
          s|_PYT_ENV_|${PYTHON36}|g;
          s|_TEJ_PYT_|${TEJAASPY}|g;
          s|_TEJ_NUL_|${TEJAASNULL}|g;
          s|_GT_FILE_|${SIMGTFILE}|g;
-         s|_EXPR_FL_|${SIMGXFILE}|g;
+         s|_EXPR_FL_|${INPUTGXFILE}|g;
          s|_GEN_POSF|${GENEINFOFILE}|g;
          s|_OUT_PRFX|${SPECIFIC_OUTDIR}/all|g;
          s|_NUL_FIL_|${NULLSCORE_FILE}|g;
@@ -52,12 +62,12 @@ else
         for SBETA in ${TEJAAS_SIGMA_BETA}; do
 
             METHOD_VARIANT="${NULL}null_sb${SBETA}"
-            SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
-            SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
+            SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/npeer${NPEER}"
+            SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/npeer${NPEER}"
 
-            JOBPREFIX="${THISMETHOD}_${METHOD_VARIANT}_${PARAMSTR}_sim${SIMINDEX}_${RANDSTRING}"
+            JOBPREFIX="${THISMETHOD}_${METHOD_VARIANT}_${PARAMSTR}_sim${SIMINDEX}_npeer${NPEER}_${RANDSTRING}"
 
-            submit_tejaas ${PYTHON36} ${TEJAASPY} ${SIMGTFILE} ${SIMGXFILE} \
+            submit_tejaas ${PYTHON36} ${TEJAASPY} ${SIMGTFILE} ${INPUTGXFILE} \
                           ${GENEINFOFILE} ${MAF_FILE} \
                           ${TEJAAS_MODEL} ${NULL} \
                           ${TEJAAS_SNPS_THRES} ${TEJAAS_GENE_THRES} ${SBETA}\

@@ -4,3 +4,5 @@ archive
 .ipynb_checkpoints
 __pycache__
 main/jpa_error_files.txt
+main/configs/CONFIG.TFMAGVAR_0.1
+main/configs/CONFIG.OLDCORR

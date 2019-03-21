@@ -23,7 +23,7 @@ CISWINDOW=_CIS_WIN_
 MATRIXEQTLMODEL=_MEQTLMOD
 EXTRAFLAGS=_EXT_FLAG
 
-export MP_NUM_THREADS=8
+export OMP_NUM_THREADS=8
 
 Rscript ${SCRIPT} --genotype ${GTFILE} \
                   --geneinfo ${GENPOSFILE} \

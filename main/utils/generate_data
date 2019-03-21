@@ -22,11 +22,13 @@ sed -e "s|_JOB_NAME|${GENDATA_JOBNAME}|g;
         s|_PYT_ENV_|${PYTHON36}|g;
         s|_SAMGT_PY|${SAMPLEGENOPY}|g;
         s|_SIMGX_PY|${SIMULATEGXPY}|g;
+        s|_PRCXN_R_|${PEERCRXN_R}|g;
         s|_VCF_FLS_|\"${VCFFILES}\"|g;
         s|_GTOT_FL_|${SIMGTFILE}|g;
         s|_GXOT_FL_|${SIMGXFILE}|g;
         s|_PRM_STR_|${PARAMSTR}|g;
         s|_GX_CORR_|\"${GXCORFILE}\"|g
+        s|_PEER_FT_|\"${NPEERCORR}\"|g
        " ${MASTER_BSUBDIR}/generate_data.bsub > ${SPECIFIC_JOBSUBDIR}/${GENDATA_JOBNAME}.bsub
 
 submit_job ${SPECIFIC_JOBSUBDIR} ${GENDATA_JOBNAME} None # no job dependencies

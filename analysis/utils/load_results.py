@@ -103,21 +103,31 @@ def jpa_scores(filepath):
     return res
 
 
-def matrixeqtl(filepath):
+def matrixeqtl_with_fdr(filepath):
     rescoll = collections.defaultdict(list)
+    fdrcoll = collections.defaultdict(list)
     with open(filepath, 'r') as mfile:
         next(mfile)
         for line in mfile:
             arr  = line.strip().split("\t")
             rsid = arr[0]
             pval = float(arr[4])
+            fdr = float(arr[5])
             rescoll[rsid].append(pval)
+            fdrcoll[rsid].append(fdr)
     pvals = list()
     rsids = list()
+    fdrs  = list()
     for key, val in rescoll.items():
         rsids.append(key)
         pvals.append(np.min(val))
+        fdrs.append(np.min(fdrcoll[key]))
     res = plist2dict(rsids, pvals)
+    return res, fdrs
+
+
+def matrixeqtl(filepath):
+    res, fdrs = matrixeqtl_with_fdr(filepath)
     return res
 
 

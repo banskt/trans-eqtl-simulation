@@ -17,8 +17,9 @@ CF_STDS="1.0"
 CIS_EFFECTS="0.6"
 TF_CIS_SHAPES="4.0"
 TF_CIS_SCALES="0.1"
-TF_TRANS_SHAPES="10 15 20"
+TF_TRANS_SHAPES="5 10 15 20"
 TF_TRANS_SCALES="0.02"
+NPEERCORR="0"
 
 # Simulation controls
 STARTSIM=0
@@ -37,7 +38,7 @@ bTejaas=true                            # run the method if true
 bTjsRandom=false
 TEJAAS_MODEL="jpa-rr"                   # only one model allowed
 TEJAAS_NULL="perm"                      # list of null models
-TEJAAS_SIGMA_BETA_PERM="0.01"           # list of sigma beta for perm null
+TEJAAS_SIGMA_BETA_PERM="0.05"           # list of sigma beta for perm null
 TEJAAS_SIGMA_BETA_MAF="0.001"           # list of sigma beta for MAF null
 MAX_NSNP_PERJOB=4000                    # number of SNPs for analysis by TEJAAS per job
 TEJAAS_SNPS_THRES=0.001                 # all trans-eQTLs are printed, but target genes are printed for those trans-eQTLs below this threshold

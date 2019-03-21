@@ -15,22 +15,33 @@ source ${UTILSDIR}/read_simparams
 
 echo "Number of datasets: ${#SIMPARAMS[@]}"
 
+
 for PARAMSTR in ${SIMPARAMS[@]}; do
-    echo ${PARAMSTR}
+    #echo ${PARAMSTR}
     ENDSIM=$(( STARTSIM + NSIM ))
+    NSNP=$( echo ${PARAMSTR} | cut -d'_' -f1 )
+    NTOP1=$(( NSNP / 10 ))
+    NTOP2=$(( NSNP / 20 ))
+    NTOP3=$(( NSNP / 100 ))
 
     ALLMETHODS=""
     if [ "${bMatrixEqtl}" = "true" ];  then ALLMETHODS="matrixeqtl ${ALLMETHODS}"; fi
-    #if [ "${bTejaas}" = "true" ];      then ALLMETHODS="rr ${ALLMETHODS}"; fi
-    #if [ "${bTejaasJPA}" = "true" ];   then ALLMETHODS="jpa ${ALLMETHODS}"; fi
+    if [ "${bTejaas}" = "true" ];      then ALLMETHODS="rr ${ALLMETHODS}"; fi
+    if [ "${bTejaasJPA}" = "true" ];   then ALLMETHODS="jpa ${ALLMETHODS}"; fi
 
     for THISMETHOD in ${ALLMETHODS}; do
-        ${PYTHON36} ${ROCSUMMPY} --startsim ${STARTSIM} \
-                                 --endsim ${ENDSIM} \
-                                 --method ${THISMETHOD} \
-                                 --which ${WHICHPLOTS} \
-                                 --srcdir ${OUTDIRUP}/${PARAMSTR} \
-                                 --outdir ${OUTDIRUP}/${PARAMSTR}/rocdata
+        SIGBETALOOP="None"; if [ "${THISMETHOD}" = "rr" ]; then SIGBETALOOP="${TEJAAS_SIGMA_BETA_PERM}"; fi
+        for SBETA in ${SIGBETALOOP}; do
+            ${PYTHON36} ${ROCSUMMPY} --startsim ${STARTSIM} \
+                                     --endsim ${ENDSIM} \
+                                     --method ${THISMETHOD} \
+                                     --which ${WHICHPLOTS} \
+                                     --sbeta ${SBETA} \
+                                     --ntop ${NTOP1} ${NTOP2} ${NTOP3} \
+                                     --srcdir ${OUTDIRUP}/${PARAMSTR} \
+                                     --outdir ${OUTDIRUP}/${PARAMSTR}/rocdata
+            #echo "$PARAMSTR	$THISMETHOD	$SBETA"
+        done
     done
 
 done
