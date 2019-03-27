@@ -12,8 +12,13 @@ fi
 
 echo "Submitting ${THISMETHOD}"
 
-SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/npeer${NPEER}"
-SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/npeer${NPEER}"
+if [ "${NPEER}" = "None" ]; then
+    SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}"
+    SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}"
+else
+    SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/npeer${NPEER}"
+    SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/npeer${NPEER}"
+fi
 
 if [ -d ${SPECIFIC_JOBSUBDIR} ]; then rm -rf ${SPECIFIC_JOBSUBDIR}; fi; mkdir -p ${SPECIFIC_JOBSUBDIR}
 if [ ! -d ${SPECIFIC_OUTDIR} ];  then mkdir -p ${SPECIFIC_OUTDIR}; fi
@@ -22,7 +27,7 @@ OUTFILE_CIS="${SPECIFIC_OUTDIR}/cis_eqtl.txt"
 OUTFILE_TRANS="${SPECIFIC_OUTDIR}/trans_eqtl.txt"
 
 INPUTGXFILE="${SIMGXFILE}"
-if [ ! "${NPEER}" == "0" ]; then
+if [ ! "${NPEER}" = "0" ] && [ ! "${NPEER}" = "None" ]; then
     __DIR=$( dirname ${SIMGXFILE} )
     __FIL=$( basename ${SIMGXFILE} )
     __PRF="${__FIL%%.*}_${NPEER}"

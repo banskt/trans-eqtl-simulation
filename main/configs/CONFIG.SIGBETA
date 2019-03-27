@@ -1,29 +1,29 @@
 #!/bin/bash
 
 # Simulation parameters
-bGenerateData=true
+bGenerateData=false
 bUseGtexCorr=true
 NGENES="15158"
 NSAMPLES="450"
 NCFS="20"
 NCISS="800"
 NTFS="30"
-NTRANSS="50 100"
+NTRANSS="150"
 NOISE_STD_SHAPES="100"
 NOISE_STD_SCALES="0.01"
 CF_SPARSITYS="0.0"
-CF_MEANS="50"
+CF_MEANS="0.0"
 CF_STDS="1.0"
 CIS_EFFECTS="0.6"
 TF_CIS_SHAPES="4.0"
 TF_CIS_SCALES="0.1"
 TF_TRANS_SHAPES="20"
 TF_TRANS_SCALES="0.02"
-NPEERCORR="0 1 3 5 10 15 20 25 35"
+NPEERCORR="None"
 
 # Simulation controls
 STARTSIM=0
-NSIM=10
+NSIM=20
 
 # MatrixEQTL options
 bMatrixEqtl=false                        # run the method if true
@@ -34,13 +34,13 @@ MEQTL_CIS_WINDOW=0
 MATRIXEQTL_MODEL="modelLINEAR"
 
 # TEJAAS options
-bTejaas=true                            # run the method if true
-bTjsRandom=false
+bTejaas=false                            # run the method if true
+bTjsRandom=true
 TEJAAS_MODEL="jpa-rr"                   # only one model allowed
 TEJAAS_NULL="perm"                      # list of null models
-TEJAAS_SIGMA_BETA_PERM="0.05"           # list of sigma beta for perm null
+TEJAAS_SIGMA_BETA_PERM="0.05"           # 0.5 0.1 0.05 0.02 0.01 0.005"           # list of sigma beta for perm null
 TEJAAS_SIGMA_BETA_MAF="0.001"           # list of sigma beta for MAF null
-MAX_NSNP_PERJOB=4000                    # number of SNPs for analysis by TEJAAS per job
+MAX_NSNP_PERJOB=6000                    # number of SNPs for analysis by TEJAAS per job
 TEJAAS_SNPS_THRES=0.001                 # all trans-eQTLs are printed, but target genes are printed for those trans-eQTLs below this threshold
 TEJAAS_GENE_THRES=0.001                 # even for the above, not all target genes are printed; only those with p-values below this threshold
 

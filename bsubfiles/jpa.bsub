@@ -2,8 +2,6 @@
 #BSUB -q mpi
 #BSUB -W 48:00
 #BSUB -n 16
-#BSUB -x
-#BSUB -R "mem>60000"
 #BSUB -R span[hosts=1]
 #BSUB -R scratch
 #BSUB -a openmpi

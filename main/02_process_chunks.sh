@@ -28,8 +28,15 @@ for PARAMSTR in ${SIMPARAMS[@]}; do
             if [ ${NULL} == "perm" ]; then TEJAAS_SIGMA_BETA=${TEJAAS_SIGMA_BETA_PERM}; fi
             if [ ${NULL} == "maf" ]; then TEJAAS_SIGMA_BETA=${TEJAAS_SIGMA_BETA_MAF}; fi
             for SBETA in ${TEJAAS_SIGMA_BETA}; do
-                if [ "${bTejaas}" = "true" ];    then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas/${NULL}null_sb${SBETA}"; fi
-                if [ "${bTjsRandom}" = "true" ]; then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas_rand/${NULL}null_sb${SBETA}"; fi
+                for NPEER in ${NPEERCORR}; do
+                    if [ ! "${NPEER}" = "None" ]; then 
+                        if [ "${bTejaas}" = "true" ];    then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas/${NULL}null_sb${SBETA}/npeer${NPEER}"; fi
+                        if [ "${bTjsRandom}" = "true" ]; then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas_rand/${NULL}null_sb${SBETA}/npeer${NPEER}"; fi
+                    else
+                        if [ "${bTejaas}" = "true" ];    then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas/${NULL}null_sb${SBETA}"; fi
+                        if [ "${bTjsRandom}" = "true" ]; then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas_rand/${NULL}null_sb${SBETA}"; fi
+                    fi
+                done
             done
         done
     done

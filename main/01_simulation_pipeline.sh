@@ -37,7 +37,6 @@ for PARAMSTR in ${SIMPARAMS[@]}; do
         SIMGTFILE="${OUTDIR_SIM}/input/genotype.vcf.gz"
         SIMGXFILE="${OUTDIR_SIM}/input/expression.txt"
 
-        #echo $SIMINDEX
         if [ "${bGenerateData}" = "true" ]; then source ${UTILSDIR}/generate_data; fi
 
         for NPEER in ${NPEERCORR}; do

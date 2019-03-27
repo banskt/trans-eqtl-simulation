@@ -68,7 +68,7 @@ ${MPYTHON} ${SIMULATEGXPY} -n ${NGENE} \
                                ${CORR_OPTION}
 
 for NPEER in ${NPEERCORR}; do
-    if [ ! "${NPEER}" = "0" ]; then
+    if [ ! "${NPEER}" = "0" ] && [ ! "${NPEER}" = "None" ]; then
         GXOUTDIR=$( dirname ${GXOUTFILE} )
         GXONLYFILE=$( basename ${GXOUTFILE} )
         GXOUTPREFIX="${GXONLYFILE%%.*}"

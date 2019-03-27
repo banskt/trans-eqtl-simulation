@@ -32,6 +32,7 @@ def banskt_presentation(black = '#333333', linewidth = 2, ticksize = 8, fontsize
 
     # Size
     matplotlib.rcParams['figure.figsize'] = 8, 8
+    matplotlib.rcParams['figure.dpi'] = 90
     
     # Fonts
     matplotlib.rcParams['font.size'] = fontsize
