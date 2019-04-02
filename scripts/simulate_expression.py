@@ -336,7 +336,16 @@ if __name__ == '__main__':
     
     # Read genotype
     readvcf = ReadVCF(opts.gtfile, 0, opts.ngene)
-    GT = readvcf.dosage
+    GTfull = readvcf.dosage
+    if opts.nsample < GTfull.shape[1]:
+        usedonors_idx = np.sort(np.random.choice(GTfull.shape[1], size=opts.nsample, replace=False))
+        GT = GTfull[:, usedonors_idx]
+        usedonors = [readvcf.donor_ids[i] for i in usedonors_idx]
+    elif opts.nsample == GTfull.shape[1]:
+        GT = GTfull
+        usedonors = readvcf.donor_ids
+    else:
+        print( "More samples requested than present in the genotype" )
 
     # Select cis-genes from all available genes
     cis_genes = np.sort(np.random.choice(opts.ngene, opts.ncis, replace=False))
@@ -377,13 +386,13 @@ if __name__ == '__main__':
     GX = normalize_expr(GX_raw)
 
     # Output
-    write_expression(GX, readvcf.donor_ids, opts.outfile)
+    write_expression(GX, usedonors, opts.outfile)
     write_gtf(readvcf.snpinfo, opts.outfile)
     write_eQTLs(readvcf.snpinfo, cis_genes, tf_genes, trans_genes, opts.outfile)
     if opts.gxcorr_file is None:
-        write_confounders(confounders, cf_effectsize, readvcf.donor_ids, opts.outfile)
+        write_confounders(confounders, cf_effectsize, usedonors, opts.outfile)
     else:
-        write_background(GX_cf, readvcf.donor_ids, opts.outfile)
+        write_background(GX_cf, usedonors, opts.outfile)
     write_ciseffects(cis_effectsize, cis_genes, opts.outfile)
     write_transeffects(trans_effectsize, tf_genes, opts.outfile)
 

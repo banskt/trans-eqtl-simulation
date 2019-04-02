@@ -3,8 +3,8 @@
 # Simulation parameters
 bGenerateData=true
 bUseGtexCorr=true
-NGENES="15158"
-NSAMPLES="450"
+NGENES="15611"
+NSAMPLES="150"
 NCFS="20"
 NCISS="800"
 NTFS="30"
@@ -58,4 +58,6 @@ WHICHPLOTS="fpr_tpr nsel_valids thres_tpr tpr_ppv"
 # Input and output options
 OUTDIRUP="/scratch/sbanerj/trans-eqtl/simulation"
 INPUT_GENO_FMT="/scratch/sbanerj/trans-eqtl/input/gtex/genotype/all_samples/GTEx_v6_imput_info04_HWEp1E6_PASS_dbSNP135_maf1_noindels_noambig_chr[CHRM]_WARNimputedmissing.vcf.gz"
-GTEX_CORR_FILE="/scratch/sbanerj/trans-eqtl/input/gtex/expression/gtex_correlation.npy"
+#GTEX_CORR_FILE="/scratch/sbanerj/trans-eqtl/input/gtex/expression/gtex_correlation.npy"
+#GTEX_CORR_FILE="/scratch/sbanerj/trans-eqtl/simulation/gtex_correlation_aa.npy"
+GTEX_CORR_FILE="/scratch/sbanerj/trans-eqtl/simulation/gtex_correlation_lmcorrected_withage_aa_8core.npy"
