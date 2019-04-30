@@ -29,6 +29,7 @@ SNPTHRES=_SNP_CUT_
 GENTHRES=_GEN_CUT_
 INCSTRNG=_STRT_END
 SBETA=_SIG_BETA
+NPCA=_NPC_COR_
 MAFFILE=_MAF_FILE
 CISWINDOW=_CIS_WIN_
 EXTRAFLAGS=_EXT_FLAG
@@ -47,7 +48,8 @@ mpirun -n 8 ${MPYTHON} ${TEJAASPY} --vcf          ${GENOFILE} \
                                    --pgenethres   ${GENTHRES} \
                                    --include-SNPs ${INCSTRNG} \
                                    --prior-sigma  ${SBETA} \
+                                   --npca         ${NPCA} \
                                    --window       ${CISWINDOW} \
                                    ${EXTRAFLAGS}
 
-### ${MPYTHON} ${TEJAASPY} --vcf ${GENOFILE} --gx ${GXPRFILE} --gtf ${GENEINFO} --method ${TJMETHOD} --null ${NULLMODL} --outprefix ${OUTPRFIX} --include-SNPs ${INCSTRNG} --psnpthres ${SNPTHRES} --pgenethres ${GENTHRES} --prior-sigma ${SBETA} --window ${CISWINDOW} ${EXTRAFLAGS}
+### ${MPYTHON} ${TEJAASPY} --vcf ${GENOFILE} --gx ${GXPRFILE} --gtf ${GENEINFO} --method ${TJMETHOD} --null ${NULLMODL} --outprefix ${OUTPRFIX} --psnpthres ${SNPTHRES} --pgenethres ${GENTHRES} --include-SNPs ${INCSTRNG} --prior-sigma ${SBETA} --npca ${NPCA} --window ${CISWINDOW} ${EXTRAFLAGS}

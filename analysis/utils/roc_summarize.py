@@ -58,6 +58,11 @@ def parse_args():
                         dest = 'npeer',
                         help = 'number of peer factors, if any')
 
+    parser.add_argument('--npca',
+                        type = int,
+                        dest = 'npca',
+                        help = 'numper of principal components, if any')
+
     parser.add_argument('--srcdir',
                         type = str,
                         dest = 'srcdir',
@@ -169,6 +174,8 @@ if opts.method == 'rr':
     outfileprefix = "{:s}_sb{:s}".format(outfileprefix, opts.perm_sbeta)
 if opts.shuffle: 
     outfileprefix = "{:s}_shuffled".format(outfileprefix)
+if opts.npca is not None:
+    outfileprefix = "{:s}_{:d}pc".format(outfileprefix, opts.npca)
 
 
 nsim = 0
@@ -180,19 +187,36 @@ for i, simidx in enumerate(simlist):
     if opts.npeer is not None:
         if opts.method == 'jpa':        simoutfile = os.path.join(opts.srcdir, simdir, "tejaas/jpa/npeer{:d}/all_jpa_pvals.txt".format(opts.npeer))
         if opts.method == 'matrixeqtl': simoutfile = os.path.join(opts.srcdir, simdir, "matrixeqtl/npeer{:d}/trans_eqtl.txt".format(opts.npeer))
-        if opts.method == 'rr':         simoutfile = os.path.join(opts.srcdir, simdir, "tejaas/permnull_sb{:s}/npeer{:d}/rr.txt".format(opts.perm_sbeta, opts.npeer))
+        if opts.method == 'rr':
+            if opts.npca is not None: 
+                simoutfile = os.path.join(opts.srcdir, simdir, "tejaas/permnull_sb{:s}_{:d}pc/npeer{:d}/rr.txt".format(opts.perm_sbeta, opts.npeer, opts.npca))
+            else:
+                simoutfile = os.path.join(opts.srcdir, simdir, "tejaas/permnull_sb{:s}/npeer{:d}/rr.txt".format(opts.perm_sbeta, opts.npeer))
         if opts.shuffle:
             if opts.method == 'jpa':        simoutfile = os.path.join(opts.srcdir, simdir, "tejaas_rand/jpa/npeer{:d}/all_jpa_pvals.txt".format(opts.npeer))
             if opts.method == 'matrixeqtl': simoutfile = os.path.join(opts.srcdir, simdir, "matrixeqtl_rand/npeer{:d}/trans_eqtl.txt".format(opts.npeer))
-            if opts.method == 'rr':         simoutfile = os.path.join(opts.srcdir, simdir, "tejaas_rand/permnull_sb{:s}/npeer{:d}/rr.txt".format(opts.perm_sbeta, opts.npeer))
+            if opts.method == 'rr':
+                if opts.npca is not None: 
+                    simoutfile = os.path.join(opts.srcdir, simdir, "tejaas_rand/permnull_sb{:s}_{:d}pc/npeer{:d}/rr.txt".format(opts.perm_sbeta, opts.npeer, opts.npca))
+                else:
+                    simoutfile = os.path.join(opts.srcdir, simdir, "tejaas_rand/permnull_sb{:s}/npeer{:d}/rr.txt".format(opts.perm_sbeta, opts.npeer))
     else:
         if opts.method == 'jpa':        simoutfile = os.path.join(opts.srcdir, simdir, "tejaas/jpa/all_jpa_pvals.txt")
         if opts.method == 'matrixeqtl': simoutfile = os.path.join(opts.srcdir, simdir, "matrixeqtl/trans_eqtl.txt")
-        if opts.method == 'rr':         simoutfile = os.path.join(opts.srcdir, simdir, "tejaas/permnull_sb{:s}/rr.txt".format(opts.perm_sbeta))
+        if opts.method == 'rr':
+            if opts.npca is not None:
+                simoutfile = os.path.join(opts.srcdir, simdir, "tejaas/permnull_sb{:s}_{:d}pc/rr.txt".format(opts.perm_sbeta, opts.npca))
+            else:
+                simoutfile = os.path.join(opts.srcdir, simdir, "tejaas/permnull_sb{:s}/rr.txt".format(opts.perm_sbeta))
         if opts.shuffle:
             if opts.method == 'jpa':        simoutfile = os.path.join(opts.srcdir, simdir, "tejaas_rand/all_jpa_pvals.txt")
             if opts.method == 'matrixeqtl': simoutfile = os.path.join(opts.srcdir, simdir, "matrixeqtl_rand/trans_eqtl.txt")
-            if opts.method == 'rr':         simoutfile = os.path.join(opts.srcdir, simdir, "tejaas_rand/permnull_sb{:s}/rr.txt".format(opts.perm_sbeta))
+            if opts.method == 'rr':
+                if opts.npca is not None:
+                    simoutfile = os.path.join(opts.srcdir, simdir, "tejaas_rand/permnull_sb{:s}_{:d}pc/rr.txt".format(opts.perm_sbeta, opts.npca))
+                else:
+                    simoutfile = os.path.join(opts.srcdir, simdir, "tejaas_rand/permnull_sb{:s}/rr.txt".format(opts.perm_sbeta))
+
 
     if os.path.exists(simoutfile):
         nsim += 1

@@ -11,7 +11,7 @@ fi
 source ${CONFIGFILE}
 source PATHS
 source ${UTILSDIR}/read_simparams
-source ${UTILSDIR}/tejaas_chunk_reduce
+source ${UTILSDIR}/tejaas_chunk_reduce.new
 
 echo "Number of datasets: ${#SIMPARAMS[@]}"
 
@@ -21,21 +21,23 @@ for PARAMSTR in ${SIMPARAMS[@]}; do
     for (( SIM=$STARTSIM; SIM<$ENDSIM; SIM++ )); do
         SIMINDEX=`echo $SIM | awk '{printf "%03d", $1}'`
         OUTDIR_SIM="${OUTDIRUP}/${PARAMSTR}/sim${SIMINDEX}"
-        echo "Simulation ${SIMINDEX}"
-        ## if [ "${bTejaasJPA}" = "true" ]; then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas/jpa"; fi
-        ## if [ "${bJPARandom}" = "true" ]; then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas_rand/jpa"; fi
+        SIMGTFILE="${OUTDIR_SIM}/input/genotype.vcf.gz"
+        NCHUNK=$( expected_nchunk ${SIMGTFILE} ${MAX_NSNP_PERJOB} )
+        echo "Simulation ${SIMINDEX} --> ${NCHUNK} nchunks"
         for NULL in ${TEJAAS_NULL}; do
             if [ ${NULL} == "perm" ]; then TEJAAS_SIGMA_BETA=${TEJAAS_SIGMA_BETA_PERM}; fi
             if [ ${NULL} == "maf" ]; then TEJAAS_SIGMA_BETA=${TEJAAS_SIGMA_BETA_MAF}; fi
             for SBETA in ${TEJAAS_SIGMA_BETA}; do
-                for NPEER in ${NPEERCORR}; do
-                    if [ ! "${NPEER}" = "None" ]; then 
-                        if [ "${bTejaas}" = "true" ];    then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas/${NULL}null_sb${SBETA}/npeer${NPEER}"; fi
-                        if [ "${bTjsRandom}" = "true" ]; then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas_rand/${NULL}null_sb${SBETA}/npeer${NPEER}"; fi
-                    else
-                        if [ "${bTejaas}" = "true" ];    then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas/${NULL}null_sb${SBETA}"; fi
-                        if [ "${bTjsRandom}" = "true" ]; then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas_rand/${NULL}null_sb${SBETA}"; fi
-                    fi
+                for NPCA in ${TEJAAS_PRINCIPAL_COMPONENTS}; do
+                    for NPEER in ${NPEERCORR}; do
+                        if [ ! "${NPEER}" = "None" ]; then 
+                            if [ "${bTejaas}" = "true" ];    then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas/${NULL}null_sb${SBETA}_${NPCA}pc/npeer${NPEER}" $NCHUNK; fi
+                            if [ "${bTjsRandom}" = "true" ]; then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas_rand/${NULL}null_sb${SBETA}_${NPCA}pc/npeer${NPEER}" $NCHUNK; fi
+                        else
+                            if [ "${bTejaas}" = "true" ];    then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas/${NULL}null_sb${SBETA}_${NPCA}pc" $NCHUNK; fi
+                            if [ "${bTjsRandom}" = "true" ]; then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas_rand/${NULL}null_sb${SBETA}_${NPCA}pc" $NCHUNK; fi
+                        fi
+                    done
                 done
             done
         done

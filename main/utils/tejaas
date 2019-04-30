@@ -63,31 +63,30 @@ else
         if [ ${NULL} == "perm" ]; then TEJAAS_SIGMA_BETA=${TEJAAS_SIGMA_BETA_PERM}; fi
         if [ ${NULL} == "maf" ]; then TEJAAS_SIGMA_BETA=${TEJAAS_SIGMA_BETA_MAF}; fi
         for SBETA in ${TEJAAS_SIGMA_BETA}; do
+            for NPCA in ${TEJAAS_PRINCIPAL_COMPONENTS}; do
+                METHOD_VARIANT="${NULL}null_sb${SBETA}_${NPCA}pc"
+                if [ "${NPEER}" = "None" ]; then
+                    SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
+                    SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
+                else
+                    SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/npeer${NPEER}"
+                    SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/npeer${NPEER}"
+                fi
 
-            METHOD_VARIANT="${NULL}null_sb${SBETA}"
-            if [ "${NPEER}" = "None" ]; then
-                SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
-                SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
-            else
-                SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/npeer${NPEER}"
-                SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/npeer${NPEER}"
-            fi
+                JOBPREFIX="${THISMETHOD}_${METHOD_VARIANT}_${PARAMSTR}_sim${SIMINDEX}_npeer${NPEER}_${NPCA}pc_${RANDSTRING}"
 
-            JOBPREFIX="${THISMETHOD}_${METHOD_VARIANT}_${PARAMSTR}_sim${SIMINDEX}_npeer${NPEER}_${RANDSTRING}"
-
-            submit_tejaas ${PYTHON36} ${TEJAASPY} ${SIMGTFILE} ${INPUTGXFILE} \
-                          ${GENEINFOFILE} ${MAF_FILE} \
-                          ${TEJAAS_MODEL} ${NULL} \
-                          ${TEJAAS_SNPS_THRES} ${TEJAAS_GENE_THRES} ${SBETA}\
-                          "${EXTRAFLAGS}" \
-                          ${SPECIFIC_JOBSUBDIR} ${SPECIFIC_OUTDIR} ${JOBPREFIX} \
-                          ${MAX_NSNP_PERJOB} \
-                          ${THISJOBDEPS} ${MASTER_BSUBDIR} \
-                          TEJAAS_JOBDEPS "${TEJAAS_JOBDEPS}"
-
+                submit_tejaas ${PYTHON36} ${TEJAASPY} ${SIMGTFILE} ${INPUTGXFILE} \
+                              ${GENEINFOFILE} ${MAF_FILE} \
+                              ${TEJAAS_MODEL} ${NULL} \
+                              ${TEJAAS_SNPS_THRES} ${TEJAAS_GENE_THRES} ${SBETA} ${NPCA}\
+                              "${EXTRAFLAGS}" \
+                              ${SPECIFIC_JOBSUBDIR} ${SPECIFIC_OUTDIR} ${JOBPREFIX} \
+                              ${MAX_NSNP_PERJOB} \
+                              ${THISJOBDEPS} ${MASTER_BSUBDIR} \
+                              TEJAAS_JOBDEPS "${TEJAAS_JOBDEPS}"
+            done
         done
     done
-
 fi
 
 RUNJPA=false

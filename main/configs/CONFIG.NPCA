@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Simulation parameters
-bGenerateData=true
+bGenerateData=false
 bUseGtexCorr=true
 NGENES="16151"
 NSAMPLES="300"
@@ -38,7 +38,8 @@ bTejaas=true                           # run the method if true
 bTjsRandom=false
 TEJAAS_MODEL="jpa-rr"                   # only one model allowed
 TEJAAS_NULL="perm"                      # list of null models
-TEJAAS_SIGMA_BETA_PERM="0.1 0.05 0.02 0.01 0.005"           # list of sigma beta for perm null
+TEJAAS_SIGMA_BETA_PERM="0.05"           # list of sigma beta for perm null
+TEJAAS_PRINCIPAL_COMPONENTS="0"
 TEJAAS_SIGMA_BETA_MAF="0.001"           # list of sigma beta for MAF null
 MAX_NSNP_PERJOB=4000                    # number of SNPs for analysis by TEJAAS per job
 TEJAAS_SNPS_THRES=0.001                 # all trans-eQTLs are printed, but target genes are printed for those trans-eQTLs below this threshold
