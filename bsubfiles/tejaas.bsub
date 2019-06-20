@@ -1,13 +1,14 @@
-#!/bin/sh
-#BSUB -q mpi-short
-#BSUB -W 2:00
-#BSUB -n 8
-#BSUB -R span[hosts=1]
-#BSUB -R scratch
-#BSUB -a openmpi
-#BSUB -J _JOB_NAME
-#BSUB -o _JOB_NAME.out
-#BSUB -e _JOB_NAME.err
+#!/bin/bash
+#SBATCH -p medium
+#SBATCH --qos=short
+#SBATCH -t 0-2:00:00
+#SBATCH -N 1
+#SBATCH --ntasks-per-node=8
+#SBATCH -C scratch
+#SBATCH -J _JOB_NAME
+#SBATCH -o _JOB_NAME.out
+#SBATCH -e _JOB_NAME.err
+
 
 module load intel/compiler/64/2017/17.0.2
 module load intel/mkl/64/2017/2.174
@@ -29,7 +30,6 @@ SNPTHRES=_SNP_CUT_
 GENTHRES=_GEN_CUT_
 INCSTRNG=_STRT_END
 SBETA=_SIG_BETA
-NPCA=_NPC_COR_
 MAFFILE=_MAF_FILE
 CISWINDOW=_CIS_WIN_
 EXTRAFLAGS=_EXT_FLAG
@@ -48,7 +48,6 @@ mpirun -n 8 ${MPYTHON} ${TEJAASPY} --vcf          ${GENOFILE} \
                                    --pgenethres   ${GENTHRES} \
                                    --include-SNPs ${INCSTRNG} \
                                    --prior-sigma  ${SBETA} \
-                                   --npca         ${NPCA} \
                                    --window       ${CISWINDOW} \
                                    ${EXTRAFLAGS}
 

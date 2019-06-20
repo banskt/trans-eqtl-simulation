@@ -6,6 +6,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from readvcf import ReadVCF
+from sklearn.decomposition import PCA
 
 from scipy.interpolate import interp1d
 import mpl_stylesheet
@@ -162,12 +163,18 @@ def simulate_noise(n, s, params):
     return X
 
 # Simulate f counfounding factors for n genes and s samples
-def simulate_confounders(n, s, f, params):
+# the first 3 (or f) confounding factors are principal components of the genotype.
+def simulate_confounders(n, s, f, params, gt):
     CF = np.zeros((f, s))
     beta = np.zeros((n, f))
     for i in range(f):
         CF[i, :] = np.random.normal(0, 1, size = s)
         beta[:, i] = spike_and_slab(params[0], params[1], params[2], size = n)
+
+    gt_pc = PCA(n_components=3).fit_transform(gt.T).T
+    for i in range(min(f, 3)):
+        CF[i, :] = gt_pc[i, :]
+
     X = np.einsum('ij, jk', beta, CF)
     return X, CF, beta
 
@@ -358,41 +365,37 @@ if __name__ == '__main__':
     nontf_genes = np.array([i for i in range(opts.ngene) if i not in tf_genes])
     trans_genes = [np.sort(np.random.choice(nontf_genes, opts.ntrans, replace=False)) for i in tf_genes]
 
-    # Simulate noise and CF
+    # Simulate background and CF
     if opts.gxcorr_file is None:
-        print ("Generating noise and confounder from prior distributions using supplied options.")
+        print ("Generating background gene expression from prior distributions using supplied options.")
         GX_noise = simulate_noise(opts.ngene, opts.nsample, opts.noise_params)
-        GX_cf, confounders, cf_effectsize = simulate_confounders (opts.ngene, opts.nsample, opts.ncf, opts.cf_params)
+        GX_bg = GX_noise
     else:
         print ("Generating background gene expression by sampling GTEx data")
-        GX_noise, GX_cf = sample_correlation(opts.gxcorr_file, opts.ngene, opts.nsample)
+        GX_noise, GX_bg = sample_correlation(opts.gxcorr_file, opts.ngene, opts.nsample)
+
+    # Simulate confounders
+    GX_cf, confounders, cf_effectsize = simulate_confounders (opts.ngene, opts.nsample, opts.ncf, opts.cf_params, GT)
 
     # Simulate cis-effects
     GX_cis, cis_effectsize = simulate_cis (GT, cis_genes, tf_genes, opts.cis_params, opts.tfcis_params)
 
     # Sum expression components
-    if opts.gxcorr_file is None:
-        print ("Summing noise, confounders and cis-effects")
-        GX_tmp = GX_noise + GX_cf + GX_cis
-    else:
-        print ("Summing background and cis-effects")
-        GX_tmp = GX_cf + GX_cis
+    GX_tmp = GX_bg + GX_cf + GX_cis
 
     # Simulate trans-effects
     GX_trans, trans_effectsize = simulate_trans (GX_tmp, tf_genes, trans_genes, opts.tftrans_params)
 
-    # Total normalized gene expression
-    GX_raw = GX_tmp + GX_trans
-    GX = normalize_expr(GX_raw)
+    # Total gene expression
+    GX =  GX_tmp + GX_trans
 
     # Output
     write_expression(GX, usedonors, opts.outfile)
     write_gtf(readvcf.snpinfo, opts.outfile)
     write_eQTLs(readvcf.snpinfo, cis_genes, tf_genes, trans_genes, opts.outfile)
-    if opts.gxcorr_file is None:
+    if opts.ncf > 0:
         write_confounders(confounders, cf_effectsize, usedonors, opts.outfile)
-    else:
-        write_background(GX_cf, usedonors, opts.outfile)
+    write_background(GX_bg, usedonors, opts.outfile)
     write_ciseffects(cis_effectsize, cis_genes, opts.outfile)
     write_transeffects(trans_effectsize, tf_genes, opts.outfile)
 
@@ -412,7 +415,7 @@ if __name__ == '__main__':
     xmin = -xmax
     
     ymax = plot_components(ax4, GX_cf   [:ngene_plot, :], xmax, xmin, nbin, ninterp, 'Confounding')
-    _    = plot_components(ax1, GX_raw  [:ngene_plot, :], xmax, xmin, nbin, ninterp, 'Total - with trans', ymax = ymax)
+    _    = plot_components(ax1, GX      [:ngene_plot, :], xmax, xmin, nbin, ninterp, 'Total - with trans', ymax = ymax)
     _    = plot_components(ax2, GX_tmp  [:ngene_plot, :], xmax, xmin, nbin, ninterp, 'Total - without trans', ymax = ymax)
     _    = plot_components(ax3, GX_noise[:ngene_plot, :], xmax, xmin, nbin, ninterp, 'Noise', ymax = ymax)
     _    = plot_components(ax5, GX_cis  [:ngene_plot, :], xmax, xmin, nbin, ninterp, 'Cis', ymax = 1.0)

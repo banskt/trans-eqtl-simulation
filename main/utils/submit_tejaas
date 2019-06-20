@@ -12,16 +12,15 @@ function submit_tejaas() {
     local snpthres=$9
     local genethres=${10}
     local sbeta=${11}
-    local npca=${12}
-    local extraflags=${13}
-    local jobsubdir=${14}
-    local outdir=${15}
-    local jobprefix=${16}
-    local nmax=${17}
-    local thisjobdep=${18}
-    local bsubdir=${19}
-    local __jobdeps=${20} ## name of the bash variable
-    local jobdeps=${21}   ## contents of the bash variable
+    local extraflags=${12}
+    local jobsubdir=${13}
+    local outdir=${14}
+    local jobprefix=${15}
+    local nmax=${16}
+    local thisjobdep=${17}
+    local bsubdir=${18}
+    local __jobdeps=${19} ## name of the bash variable
+    local jobdeps=${20}   ## contents of the bash variable
     local jobname=0
     local i=0
     local index=0
@@ -72,14 +71,13 @@ function submit_tejaas() {
              s|_SNP_CUT_|${snpthres}|g;
              s|_GEN_CUT_|${genethres}|g;
              s|_SIG_BETA|${sbeta}|g;
-             s|_NPC_COR_|${npca}|g;
              s|_CIS_WIN_|${ciswindow}|g;
              s|_MAF_FILE|${maffile}|g;
              s|_EXT_FLAG|\"${extraflags}\"|g;
-            " ${bsubdir}/tejaas.bsub > ${jobsubdir}/${jobname}.bsub
+            " ${bsubdir}/tejaas.bsub > ${jobsubdir}/${jobname}.sh
 
-        submit_job ${jobsubdir} ${jobname} ${thisjobdep}
-        jobdeps=`add_deps "${jobdeps}" ${jobname}`
+        thisjobid=$( submit_job ${jobsubdir} ${jobname} ${thisjobdep} )
+        jobdeps=$( add_deps "${jobdeps}" ${thisjobid} )
     done
     eval $__jobdeps="'$jobdeps'"
 }

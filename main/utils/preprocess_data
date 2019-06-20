@@ -1,0 +1,24 @@
+#!/bin/bash
+
+THISMETHOD="preproc"
+PREPROC_JOBNAME="${THISMETHOD}_${PARAMSTR}_sim${SIMINDEX}_${RANDSTRING}"
+
+SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}"
+SPECIFIC_OUTDIR=$( dirname $SIMGTFILE )
+
+if [ -d ${SPECIFIC_JOBSUBDIR} ]; then rm -rf ${SPECIFIC_JOBSUBDIR}; fi; mkdir -p ${SPECIFIC_JOBSUBDIR};
+
+sed -e "s|_JOB_NAME|${PREPROC_JOBNAME}|g;
+        s|_PYT_ENV_|${PYTHON36}|g;
+        s|_PRCC_PY_|${PREPROCPY}|g;
+        s|_PRCXN_R_|${PEERCRXN_R}|g;
+        s|_GXOT_FL_|${SIMGXFILE}|g;
+        s|_CFOT_FL_|${SIMCFFILE}|g;
+        s|_GXPR_FL_|${GXPROCFILE}|g;
+        s|_PRCC_MT_|\"${PREPROC_METHODS}\"|g;
+        s|_PEER_FT_|\"${NPEERCORR}\"|g
+        s|_PEER_MT_|\"${PEERTRG_METHODS}\"|g
+       " ${MASTER_BSUBDIR}/preproc_gx.bsub > ${SPECIFIC_JOBSUBDIR}/${PREPROC_JOBNAME}.sh
+
+PREPROC_JOBID=$( submit_job ${SPECIFIC_JOBSUBDIR} ${PREPROC_JOBNAME} ${GENDATA_JOBDEPS} ) # job depends on data generation
+PREPROC_JOBDEPS=$( add_deps "${PREPROC_JOBDEPS}" ${PREPROC_JOBID} )

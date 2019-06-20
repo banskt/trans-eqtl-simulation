@@ -24,23 +24,26 @@ for PARAMSTR in ${SIMPARAMS[@]}; do
         SIMGTFILE="${OUTDIR_SIM}/input/genotype.vcf.gz"
         NCHUNK=$( expected_nchunk ${SIMGTFILE} ${MAX_NSNP_PERJOB} )
         echo "Simulation ${SIMINDEX} --> ${NCHUNK} nchunks"
-        for NULL in ${TEJAAS_NULL}; do
-            if [ ${NULL} == "perm" ]; then TEJAAS_SIGMA_BETA=${TEJAAS_SIGMA_BETA_PERM}; fi
-            if [ ${NULL} == "maf" ]; then TEJAAS_SIGMA_BETA=${TEJAAS_SIGMA_BETA_MAF}; fi
-            for SBETA in ${TEJAAS_SIGMA_BETA}; do
-                for NPCA in ${TEJAAS_PRINCIPAL_COMPONENTS}; do
-                    for NPEER in ${NPEERCORR}; do
-                        if [ ! "${NPEER}" = "None" ]; then 
-                            if [ "${bTejaas}" = "true" ];    then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas/${NULL}null_sb${SBETA}_${NPCA}pc/npeer${NPEER}" $NCHUNK; fi
-                            if [ "${bTjsRandom}" = "true" ]; then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas_rand/${NULL}null_sb${SBETA}_${NPCA}pc/npeer${NPEER}" $NCHUNK; fi
-                        else
-                            if [ "${bTejaas}" = "true" ];    then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas/${NULL}null_sb${SBETA}_${NPCA}pc" $NCHUNK; fi
-                            if [ "${bTjsRandom}" = "true" ]; then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas_rand/${NULL}null_sb${SBETA}_${NPCA}pc" $NCHUNK; fi
-                        fi
+
+        for PRIDX in ${!TEJAAS_PREPROC[*]}; do
+
+            PRCC=${TEJAAS_PREPROC[PRIDX]}
+            KNN=${TEJAAS_KNN[PRIDX]}
+
+            for NULL in ${TEJAAS_NULL}; do
+                if [ ${NULL} == "perm" ]; then __SIGMA_BETA=${TEJAAS_SIGMA_BETA_PERM}; fi
+                if [ ${NULL} == "maf" ]; then  __SIGMA_BETA=${TEJAAS_SIGMA_BETA_MAF}; fi
+                for SBETA in ${__SIGMA_BETA}; do
+                    METHOD_VARIANT="${NULL}null_sb${SBETA}"
+                    if [ "${KNN}" = "true" ]; then
+                        METHOD_VARIANT="${METHOD_VARIANT}_knn"
+                    fi
+                    for NPEER in ${TEJAAS_NPEER}; do
+                            if [ "${bTejaas}" = "true" ];    then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas/${METHOD_VARIANT}/${PRCC}/peer${NPEER}" $NCHUNK; fi
+                            if [ "${bTjsRandom}" = "true" ]; then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas_rand/${METHOD_VARIANT}/${PRCC}/peer${NPEER}" $NCHUNK; fi
                     done
                 done
             done
         done
     done
-
 done

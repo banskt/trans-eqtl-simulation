@@ -31,21 +31,11 @@ def parse_args():
                         dest = 'method',
                         help = 'Name of the method to analyze')
 
-    parser.add_argument('--shuffle',
-                        action='store_true',
-                        dest = 'shuffle',
-                        help = 'whether to load results from shuffled analysis')
-
     parser.add_argument('--which',
                         nargs = '*',
                         type = str,
                         dest = 'whichplots',
                         help = 'which statistics to plot: x and y separated with underscore, e.g. fpr_tpr')
-
-    parser.add_argument('--sbeta',
-                        type = str,
-                        dest = 'perm_sbeta',
-                        help = 'which sigma beta to use')
 
     parser.add_argument('--ntop',
                         nargs = '*',
@@ -53,25 +43,25 @@ def parse_args():
                         dest = 'ntop',
                         help = 'number of SNPs to consider for discovering trans-eQTLs, accepts list of integers')
 
-    parser.add_argument('--npeer',
-                        type = int,
-                        dest = 'npeer',
-                        help = 'number of peer factors, if any')
-
-    parser.add_argument('--npca',
-                        type = int,
-                        dest = 'npca',
-                        help = 'numper of principal components, if any')
-
     parser.add_argument('--srcdir',
                         type = str,
                         dest = 'srcdir',
                         help = 'where can you find the simulation directories')
 
+    parser.add_argument('--mdir',
+                        type = str,
+                        dest = 'method_dir',
+                        help = 'where can you find this method\'s output')
+
     parser.add_argument('--outdir',
                         type = str,
                         dest = 'outdir',
                         help = 'where to keep the analysis results')
+
+    parser.add_argument('--outprefix',
+                        type = str,
+                        dest = 'outprefix',
+                        help = 'prefix of the output file')
 
     opts = parser.parse_args()
     return opts
@@ -137,10 +127,6 @@ def get_validpred(valres, simfdr, method, fdr, ntop):
 
 opts = parse_args()
 
-if opts.method == 'rr_rand':
-    opts.shuffle = True
-    opts.method = 'rr'
-
 simlist = list(range(opts.startsim, opts.endsim))
 nsel    = list()
 tpr     = list()
@@ -167,16 +153,7 @@ for fdr in fdrlist:
 if not os.path.exists(opts.outdir):
     os.makedirs(opts.outdir)
 
-outfileprefix = os.path.join(opts.outdir, "{:s}".format(opts.method))
-if opts.npeer is not None:
-    outfileprefix = os.path.join(opts.outdir, "npeer{:d}_{:s}".format(opts.npeer, opts.method))
-if opts.method == 'rr':
-    outfileprefix = "{:s}_sb{:s}".format(outfileprefix, opts.perm_sbeta)
-if opts.shuffle: 
-    outfileprefix = "{:s}_shuffled".format(outfileprefix)
-if opts.npca is not None:
-    outfileprefix = "{:s}_{:d}pc".format(outfileprefix, opts.npca)
-
+outfileprefix = os.path.join(opts.outdir, opts.outprefix)
 
 nsim = 0
 for i, simidx in enumerate(simlist):
@@ -184,39 +161,10 @@ for i, simidx in enumerate(simlist):
     sim_trans_file  = os.path.join(opts.srcdir, simdir, "input/expression.trans")
     sim_cis_file    = os.path.join(opts.srcdir, simdir, "input/expression.cis")
 
-    if opts.npeer is not None:
-        if opts.method == 'jpa':        simoutfile = os.path.join(opts.srcdir, simdir, "tejaas/jpa/npeer{:d}/all_jpa_pvals.txt".format(opts.npeer))
-        if opts.method == 'matrixeqtl': simoutfile = os.path.join(opts.srcdir, simdir, "matrixeqtl/npeer{:d}/trans_eqtl.txt".format(opts.npeer))
-        if opts.method == 'rr':
-            if opts.npca is not None: 
-                simoutfile = os.path.join(opts.srcdir, simdir, "tejaas/permnull_sb{:s}_{:d}pc/npeer{:d}/rr.txt".format(opts.perm_sbeta, opts.npeer, opts.npca))
-            else:
-                simoutfile = os.path.join(opts.srcdir, simdir, "tejaas/permnull_sb{:s}/npeer{:d}/rr.txt".format(opts.perm_sbeta, opts.npeer))
-        if opts.shuffle:
-            if opts.method == 'jpa':        simoutfile = os.path.join(opts.srcdir, simdir, "tejaas_rand/jpa/npeer{:d}/all_jpa_pvals.txt".format(opts.npeer))
-            if opts.method == 'matrixeqtl': simoutfile = os.path.join(opts.srcdir, simdir, "matrixeqtl_rand/npeer{:d}/trans_eqtl.txt".format(opts.npeer))
-            if opts.method == 'rr':
-                if opts.npca is not None: 
-                    simoutfile = os.path.join(opts.srcdir, simdir, "tejaas_rand/permnull_sb{:s}_{:d}pc/npeer{:d}/rr.txt".format(opts.perm_sbeta, opts.npeer, opts.npca))
-                else:
-                    simoutfile = os.path.join(opts.srcdir, simdir, "tejaas_rand/permnull_sb{:s}/npeer{:d}/rr.txt".format(opts.perm_sbeta, opts.npeer))
-    else:
-        if opts.method == 'jpa':        simoutfile = os.path.join(opts.srcdir, simdir, "tejaas/jpa/all_jpa_pvals.txt")
-        if opts.method == 'matrixeqtl': simoutfile = os.path.join(opts.srcdir, simdir, "matrixeqtl/trans_eqtl.txt")
-        if opts.method == 'rr':
-            if opts.npca is not None:
-                simoutfile = os.path.join(opts.srcdir, simdir, "tejaas/permnull_sb{:s}_{:d}pc/rr.txt".format(opts.perm_sbeta, opts.npca))
-            else:
-                simoutfile = os.path.join(opts.srcdir, simdir, "tejaas/permnull_sb{:s}/rr.txt".format(opts.perm_sbeta))
-        if opts.shuffle:
-            if opts.method == 'jpa':        simoutfile = os.path.join(opts.srcdir, simdir, "tejaas_rand/all_jpa_pvals.txt")
-            if opts.method == 'matrixeqtl': simoutfile = os.path.join(opts.srcdir, simdir, "matrixeqtl_rand/trans_eqtl.txt")
-            if opts.method == 'rr':
-                if opts.npca is not None:
-                    simoutfile = os.path.join(opts.srcdir, simdir, "tejaas_rand/permnull_sb{:s}_{:d}pc/rr.txt".format(opts.perm_sbeta, opts.npca))
-                else:
-                    simoutfile = os.path.join(opts.srcdir, simdir, "tejaas_rand/permnull_sb{:s}/rr.txt".format(opts.perm_sbeta))
-
+    simoutmdir = os.path.join(opts.srcdir, simdir, opts.method_dir)
+    if opts.method == 'jpa':        simoutfile = os.path.join(simoutmdir, "all_jpa_pvals.txt")
+    if opts.method == 'rr':         simoutfile = os.path.join(simoutmdir, "rr.txt")
+    if opts.method == 'matrixeqtl': simoutfile = os.path.join(simoutmdir, "trans_eqtl.txt")
 
     if os.path.exists(simoutfile):
         nsim += 1
@@ -240,11 +188,10 @@ for i, simidx in enumerate(simlist):
                 thistp, thisfp = get_validpred(simdata, simfdr, opts.method, fdr, ntop)
                 truepos[fdr][ntop].append(thistp)
                 falsepos[fdr][ntop].append(thisfp)
-
     #else:
     #    print ("{:s} does not exist".format(simoutfile))
 
-print ("{:s} --> {:s} --> {:d} simulations".format(opts.outdir, opts.method, nsim))
+print ("{:s} --> {:d} simulations".format(opts.outprefix, nsim))
 if nsim > 0:
     ninterp = int(2 * np.max([len(x) for x in rocdata['thres']]))
     for desc in opts.whichplots:
@@ -262,7 +209,6 @@ if nsim > 0:
         yest = np.mean(yest_arr, axis = 0)
         yerr = np.std (yest_arr, axis = 0)
         outfile = "{:s}_{:s}_{:s}.txt".format(outfileprefix, xstr, ystr)
-        #print (outfile)
         with open(outfile, 'w') as fout:
             fout.write("{:s} {:s} {:s}_std\n".format(xstr, ystr, ystr))
             for x, y, e in zip(xvals, yest, yerr):

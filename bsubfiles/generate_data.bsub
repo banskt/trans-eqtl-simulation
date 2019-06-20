@@ -1,30 +1,27 @@
-#!/bin/sh
-#BSUB -q mpi-short
-#BSUB -W 2:00
-#BSUB -n 8
-#BSUB -R span[hosts=1]
-#BSUB -R scratch
-#BSUB -a openmp
-#BSUB -J _JOB_NAME
-#BSUB -o _JOB_NAME.out
-#BSUB -e _JOB_NAME.err
+#!/bin/bash
+#SBATCH -p medium
+#SBATCH --qos=short
+#SBATCH -t 0-2:00:00
+#SBATCH -n 8
+#SBATCH -N 1
+#SBATCH -C scratch
+#SBATCH -J _JOB_NAME
+#SBATCH -o _JOB_NAME.out
+#SBATCH -e _JOB_NAME.err
 
 module load intel/compiler/64/2017/17.0.2
 module load intel/mkl/64/2017/2.174
-module load R/3.4.1
 
 export OMP_NUM_THREADS=8
 
 MPYTHON=_PYT_ENV_
 SAMPLEGENOPY=_SAMGT_PY
 SIMULATEGXPY=_SIMGX_PY
-PEERCRXN_R=_PRCXN_R_
 VCFFILES=_VCF_FLS_
 GTOUTFILE=_GTOT_FL_
 GXOUTFILE=_GXOT_FL_
 PARAMSTR=_PRM_STR_
 GXCORRFILE=_GX_CORR_
-NPEERCORR=_PEER_FT_
 
 SIMPARAM=( ${PARAMSTR//_/\ } ); # convert the string to an array of parameters
 
@@ -66,16 +63,6 @@ ${MPYTHON} ${SIMULATEGXPY} -n ${NGENE} \
                                --geno ${GTOUTFILE} \
                                --out ${GXOUTFILE} \
                                ${CORR_OPTION}
-
-for NPEER in ${NPEERCORR}; do
-    if [ ! "${NPEER}" = "0" ] && [ ! "${NPEER}" = "None" ]; then
-        GXOUTDIR=$( dirname ${GXOUTFILE} )
-        GXONLYFILE=$( basename ${GXOUTFILE} )
-        GXOUTPREFIX="${GXONLYFILE%%.*}"
-        Rscript ${PEERCRXN_R} ${GXOUTFILE} ${GXOUTPREFIX}_${NPEER} --n ${NPEER} -o ${GXOUTDIR}
-    fi
-done
-
 
 ### For debug on interactive shell
 ### ${MPYTHON} ${SAMPLEGENOPY} -n ${NGENE} --input ${VCFFILES} --out ${GTOUTFILE}

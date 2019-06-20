@@ -19,16 +19,18 @@ echo "Number of datasets: ${#SIMPARAMS[@]}"
 
 # Run simulation for each set of parameters
 for PARAMSTR in ${SIMPARAMS[@]}; do
+    echo "${PARAMSTR}"
     ENDSIM=$(( STARTSIM + NSIM ))
     for (( SIM=$STARTSIM; SIM<$ENDSIM; SIM++ )); do
 
+
         SIMINDEX=`echo $SIM | awk '{printf "%03d", $1}'`
         RANDSTRING=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 4 | head -n 1`
-        RUNJPA=false    # used for submitting jpa-only jobs
         SHUFFLE=false   # used for controlling shuffling
 
         ## control job dependencies
         GENDATA_JOBDEPS="None"
+        PREPROC_JOBDEPS="None"
         MATRIXEQTL_JOBDEPS="None"
         TEJAAS_JOBDEPS="None"
 
@@ -36,16 +38,31 @@ for PARAMSTR in ${SIMPARAMS[@]}; do
         OUTDIR_SIM="${OUTDIRUP}/${PARAMSTR}/sim${SIMINDEX}"
         SIMGTFILE="${OUTDIR_SIM}/input/genotype.vcf.gz"
         SIMGXFILE="${OUTDIR_SIM}/input/expression.txt"
+        SIMCFFILE="${OUTDIR_SIM}/input/expression.cf"
+        GXPROCFILE="${OUTDIR_SIM}/input/gx.txt"
 
-        if [ "${bGenerateData}" = "true" ]; then source ${UTILSDIR}/generate_data; fi
+        echo "  sim${SIMINDEX}:"
+
+        if [ "${bGenerateData}" = "true" ]; then 
+            source ${UTILSDIR}/generate_data
+            echo "    ${GENDATA_JOBID} > Generate data."
+        fi
+
+        if [ "${bPreprocessData}" = "true" ]; then 
+            source ${UTILSDIR}/preprocess_data
+            echo "    ${PREPROC_JOBID} > Preprocess data: ${GENDATA_JOBDEPS}"
+        fi
 
         for NPEER in ${NPEERCORR}; do
-            if [ "${bMatrixEqtl}" = "true" ];  then source ${UTILSDIR}/matrix_eqtl; fi
-            if [ "${bMEqtlRandom}" = "true" ]; then SHUFFLE=true; source ${UTILSDIR}/matrix_eqtl; fi
-            if [ "${bTejaas}" = "true" ];      then source ${UTILSDIR}/tejaas; fi
-            if [ "${bTjsRandom}" = "true" ];   then SHUFFLE=true; source ${UTILSDIR}/tejaas; fi
-            if [ "${bTejaasJPA}" = "true" ];   then RUNJPA=true; source ${UTILSDIR}/tejaas; fi
-            if [ "${bJPARandom}" = "true" ];   then SHUFFLE=true; RUNJPA=true; source ${UTILSDIR}/tejaas; fi
+            if [ "${bMatrixEqtl}" = "true" ];   then source ${UTILSDIR}/matrix_eqtl; fi
+            if [ "${bMEqtlRandom}" = "true" ];  then SHUFFLE=true; source ${UTILSDIR}/matrix_eqtl; SHUFFLE=false; fi
+            #if [ "${bJPA}" = "true" ];          then source ${UTILSDIR}/jpa; fi
+            #if [ "${bJPARandom}" = "true" ];    then SHUFFLE=true; source ${UTILSDIR}/jpa; SHUFFLE=false; fi
+        done
+
+        for NPEER in ${TEJAAS_NPEER}; do
+            if [ "${bTejaas}" = "true" ];       then source ${UTILSDIR}/tejaas; fi
+            if [ "${bTejaasRandom}" = "true" ]; then SHUFFLE=true; source ${UTILSDIR}/tejaas; SHUFFLE=false; fi
         done
     done
 done

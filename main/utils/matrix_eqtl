@@ -7,50 +7,54 @@ if [ "${SHUFFLE}" = "true" ]; then
     THISMETHOD="matrixeqtl_rand"
     SHUFFLED_ID_FILE=${SIMGTFILE/\.vcf\.gz/\.shuf}
     EXTRAFLAGS="--shufflewith ${SHUFFLED_ID_FILE}"
-    SHUFFLE=false
 fi
 
-echo "Submitting ${THISMETHOD}"
+for PRCC in ${MATRIXEQTL_PREPROC}; do
 
-if [ "${NPEER}" = "None" ]; then
-    SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}"
-    SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}"
-else
-    SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/npeer${NPEER}"
-    SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/npeer${NPEER}"
-fi
+    SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${PRCC}/peer${NPEER}"
+    SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${PRCC}/peer${NPEER}"
 
-if [ -d ${SPECIFIC_JOBSUBDIR} ]; then rm -rf ${SPECIFIC_JOBSUBDIR}; fi; mkdir -p ${SPECIFIC_JOBSUBDIR}
-if [ ! -d ${SPECIFIC_OUTDIR} ];  then mkdir -p ${SPECIFIC_OUTDIR}; fi
+    if [ -d ${SPECIFIC_JOBSUBDIR} ]; then rm -rf ${SPECIFIC_JOBSUBDIR}; fi; mkdir -p ${SPECIFIC_JOBSUBDIR}
+    if [ ! -d ${SPECIFIC_OUTDIR} ];  then mkdir -p ${SPECIFIC_OUTDIR}; fi
 
-OUTFILE_CIS="${SPECIFIC_OUTDIR}/cis_eqtl.txt"
-OUTFILE_TRANS="${SPECIFIC_OUTDIR}/trans_eqtl.txt"
+    OUTFILE_CIS="${SPECIFIC_OUTDIR}/cis_eqtl.txt"
+    OUTFILE_TRANS="${SPECIFIC_OUTDIR}/trans_eqtl.txt"
 
-INPUTGXFILE="${SIMGXFILE}"
-if [ ! "${NPEER}" = "0" ] && [ ! "${NPEER}" = "None" ]; then
-    __DIR=$( dirname ${SIMGXFILE} )
-    __FIL=$( basename ${SIMGXFILE} )
-    __PRF="${__FIL%%.*}_${NPEER}"
-    INPUTGXFILE="${__DIR}/${__PRF}_PEER_residuals.txt"
-fi
+    __DIR=$( dirname ${GXPROCFILE} )
+    __FIL=$( basename ${GXPROCFILE} )
+    __PRF="${__FIL%%.*}_${PRCC}"
 
-GENEPOSFILE=${SIMGXFILE/\.txt/\.genepos}
-MATRIXEQTL_JOBNAME="${THISMETHOD}_${PARAMSTR}_sim${SIMINDEX}_npeer${NPEER}_${RANDSTRING}"
+    if [ ! "${NPEER}" = "0" ]; then
+        __PRF="${__PRF}_${NPEER}_PEER_residuals"
+    fi
 
-sed -e "s|_JOB_NAME|${MATRIXEQTL_JOBNAME}|g;
-        s|_MEQTL_R_|${MATRIXEQTL_R}|g;
-        s|_GT_FILE_|${SIMGTFILE}|g;
-        s|_GEN_POSF|${GENEPOSFILE}|g;
-        s|_EXPR_FL_|${INPUTGXFILE}|g;
-        s|_PTHR_CIS|${MEQTL_PVALTHRES_CIS}|g;
-        s|_PTHR_TRA|${MEQTL_PVALTHRES_TRANS}|g;
-        s|_OUTF_CIS|${OUTFILE_CIS}|g;
-        s|_OUTF_TRA|${OUTFILE_TRANS}|g;
-        s|_CIS_WIN_|${MEQTL_CIS_WINDOW}|g;
-        s|_MEQTLMOD|${MATRIXEQTL_MODEL}|g;
-        s|_EXT_FLAG|\"${EXTRAFLAGS}\"|g;
-       " ${MASTER_BSUBDIR}/matrixeqtl.bsub > ${SPECIFIC_JOBSUBDIR}/${MATRIXEQTL_JOBNAME}.bsub
+    INPUTGXFILE="${__DIR}/${__PRF}_norm.txt"
 
-#echo $GENDATA_JOBDEPS
-submit_job ${SPECIFIC_JOBSUBDIR} ${MATRIXEQTL_JOBNAME} ${GENDATA_JOBDEPS}
-MATRIXEQTL_JOBDEPS=`add_deps "${MATRIXEQTL_JOBDEPS}" ${MATRIXEQTL_JOBNAME}`
+    GENEPOSFILE=${SIMGXFILE/\.txt/\.genepos}
+    MATRIXEQTL_JOBNAME="${THISMETHOD}_${PARAMSTR}_sim${SIMINDEX}_npeer${NPEER}_${PRCC}_${RANDSTRING}"
+
+    sed -e "s|_JOB_NAME|${MATRIXEQTL_JOBNAME}|g;
+            s|_MEQTL_R_|${MATRIXEQTL_R}|g;
+            s|_GT_FILE_|${SIMGTFILE}|g;
+            s|_GEN_POSF|${GENEPOSFILE}|g;
+            s|_EXPR_FL_|${INPUTGXFILE}|g;
+            s|_PTHR_CIS|${MEQTL_PVALTHRES_CIS}|g;
+            s|_PTHR_TRA|${MEQTL_PVALTHRES_TRANS}|g;
+            s|_OUTF_CIS|${OUTFILE_CIS}|g;
+            s|_OUTF_TRA|${OUTFILE_TRANS}|g;
+            s|_CIS_WIN_|${MEQTL_CIS_WINDOW}|g;
+            s|_MEQTLMOD|${MATRIXEQTL_MODEL}|g;
+            s|_EXT_FLAG|\"${EXTRAFLAGS}\"|g;
+           " ${MASTER_BSUBDIR}/matrixeqtl.bsub > ${SPECIFIC_JOBSUBDIR}/${MATRIXEQTL_JOBNAME}.sh
+
+    MATRIXEQTL_JOBID=$( submit_job ${SPECIFIC_JOBSUBDIR} ${MATRIXEQTL_JOBNAME} ${PREPROC_JOBDEPS} )
+    MATRIXEQTL_JOBDEPS=$( add_deps "${MATRIXEQTL_JOBDEPS}" ${MATRIXEQTL_JOBID} )
+
+    __STDSTR="    ${MATRIXEQTL_JOBID} > MatrixEQTL on ${PRCC} + ${NPEER} peer"
+    if [ "${SHUFFLE}" = "true" ]; then
+        __STDSTR="${__STDSTR} + shuffled genotype"
+    fi
+
+    echo "${__STDSTR}: ${PREPROC_JOBDEPS}"
+
+done
