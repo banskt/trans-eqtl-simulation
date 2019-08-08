@@ -27,6 +27,7 @@ for PARAMSTR in ${SIMPARAMS[@]}; do
         SIMINDEX=`echo $SIM | awk '{printf "%03d", $1}'`
         RANDSTRING=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 4 | head -n 1`
         SHUFFLE=false   # used for controlling shuffling
+        SUBMITTED_JOBIDS="" # used for controlling jobid reporting
 
         ## control job dependencies
         GENDATA_JOBDEPS="None"

@@ -51,4 +51,4 @@ mpirun -n 8 ${MPYTHON} ${TEJAASPY} --vcf          ${GENOFILE} \
                                    --window       ${CISWINDOW} \
                                    ${EXTRAFLAGS}
 
-### ${MPYTHON} ${TEJAASPY} --vcf ${GENOFILE} --gx ${GXPRFILE} --gtf ${GENEINFO} --method ${TJMETHOD} --null ${NULLMODL} --outprefix ${OUTPRFIX} --psnpthres ${SNPTHRES} --pgenethres ${GENTHRES} --include-SNPs ${INCSTRNG} --prior-sigma ${SBETA} --npca ${NPCA} --window ${CISWINDOW} ${EXTRAFLAGS}
+### ${MPYTHON} ${TEJAASPY} --vcf ${GENOFILE} --gx ${GXPRFILE} --gtf ${GENEINFO} --method ${TJMETHOD} --null ${NULLMODL} --outprefix ${OUTPRFIX} --psnpthres ${SNPTHRES} --pgenethres ${GENTHRES} --include-SNPs ${INCSTRNG} --prior-sigma ${SBETA} --window ${CISWINDOW} ${EXTRAFLAGS}

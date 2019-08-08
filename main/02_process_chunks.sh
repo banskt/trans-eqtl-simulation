@@ -35,12 +35,16 @@ for PARAMSTR in ${SIMPARAMS[@]}; do
                 if [ ${NULL} == "maf" ]; then  __SIGMA_BETA=${TEJAAS_SIGMA_BETA_MAF}; fi
                 for SBETA in ${__SIGMA_BETA}; do
                     METHOD_VARIANT="${NULL}null_sb${SBETA}"
+                    if [ ! "${TEJAAS_CISMASK}" = "true" ]; then
+                        METHOD_VARIANT="${METHOD_VARIANT}_nomask"
+                    fi
                     if [ "${KNN}" = "true" ]; then
                         METHOD_VARIANT="${METHOD_VARIANT}_knn"
                     fi
+
                     for NPEER in ${TEJAAS_NPEER}; do
                             if [ "${bTejaas}" = "true" ];    then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas/${METHOD_VARIANT}/${PRCC}/peer${NPEER}" $NCHUNK; fi
-                            if [ "${bTjsRandom}" = "true" ]; then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas_rand/${METHOD_VARIANT}/${PRCC}/peer${NPEER}" $NCHUNK; fi
+                            if [ "${bTejaasRandom}" = "true" ]; then tejaas_chunk_reduce "${OUTDIR_SIM}/tejaas_rand/${METHOD_VARIANT}/${PRCC}/peer${NPEER}" $NCHUNK; fi
                     done
                 done
             done

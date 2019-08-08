@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# Simulation parameters
+bGenerateData=false
+bUseGtexCorr=false
+NGENES="16151"
+NSAMPLES="450"
+NCFS="10"
+NCISS="800"
+NTFS="30"
+NTRANSS="150"
+NOISE_STD_SHAPES="100"
+NOISE_STD_SCALES="0.01"
+CF_SPARSITYS="0.5"
+CF_MEANS="0.0"
+CF_STDS="1.0"
+CIS_EFFECTS="0.6"
+TF_CIS_SHAPES="4.0"
+TF_CIS_SCALES="0.1"
+TF_TRANS_SHAPES="20"
+TF_TRANS_SCALES="0.02"
+
+# Preprocessing controls
+bPreprocessData=false
+NPEERCORR="0"
+PREPROC_METHODS="cclasso norm cclasso_norm"
+PEERTRG_METHODS="cclasso" # must be a subset of the above
+
+# Simulation controls
+STARTSIM=10
+NSIM=5
+
+# MatrixEQTL options
+bMatrixEqtl=false                         # run the method if true
+bMEqtlRandom=false                        # run the method if true
+MEQTL_PVALTHRES_CIS=0.001
+MEQTL_PVALTHRES_TRANS=0.001
+MEQTL_CIS_WINDOW=0
+MATRIXEQTL_MODEL="modelLINEAR"
+MATRIXEQTL_PREPROC="cclasso" # must be a subset of PREPROC_METHODS, 'norm' is automatically appended
+
+# TEJAAS options
+bTejaas=true                           # run the method if true
+bTejaasRandom=true
+TEJAAS_MODEL="jpa-rr"                   # only one model allowed
+TEJAAS_NULL="perm"                      # list of null models
+TEJAAS_CISMASK="true"
+TEJAAS_SIGMA_BETA_PERM="0.1"            # list of sigma beta for perm null
+TEJAAS_SIGMA_BETA_MAF="0.01"            # list of sigma beta for MAF null
+MAX_NSNP_PERJOB=4000                    # number of SNPs for analysis by TEJAAS per job
+TEJAAS_SNPS_THRES=0.001                 # all trans-eQTLs are printed, but target genes are printed for those trans-eQTLs below this threshold
+TEJAAS_GENE_THRES=0.001                 # even for the above, not all target genes are printed; only those with p-values below this threshold
+TEJAAS_NPEER="0"                        # must be a subset of NPEERCORR
+TEJAAS_PREPROC=(raw)         # array of preprocessing options, must be a subset of PREPROC_METHODS
+TEJAAS_KNN=(true)            # whether to apply KNN on the gene expression, same size as TEJAAS_PREPROC
+
+# JPA options
+bTejaasJPA=false
+bJPARandom=false
+
+# GNetLMM options
+# bGNetLmm=true
+# bGNLRandom=true
+# GNLMM_SNP_PER_JOB=20000
+
+# Which ROC plots to obtain?
+WHICHPLOTS="fpr_tpr nsel_valids thres_tpr tpr_ppv"
+
+# Input and output options
+OUTDIRUP="/scratch/sbanerj/trans-eqtl/simulation"
+INPUT_GENO_FMT="/scratch/sbanerj/trans-eqtl/input/gtex/genotype/all_samples/GTEx_v6_imput_info04_HWEp1E6_PASS_dbSNP135_maf1_noindels_noambig_chr[CHRM]_WARNimputedmissing.vcf.gz"
+GTEX_CORR_FILE="/scratch/sbanerj/trans-eqtl/simulation/gtex_correlation_normalized_as.npy"
+#GTEX_CORR_FILE="/scratch/sbanerj/trans-eqtl/simulation/gtex_correlation_lmcorrected_withage_aa_8core.npy"

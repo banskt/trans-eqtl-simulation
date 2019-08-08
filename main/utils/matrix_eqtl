@@ -22,7 +22,11 @@ for PRCC in ${MATRIXEQTL_PREPROC}; do
 
     __DIR=$( dirname ${GXPROCFILE} )
     __FIL=$( basename ${GXPROCFILE} )
-    __PRF="${__FIL%%.*}_${PRCC}"
+    __PRF="${__FIL%%.*}"
+
+    if [ ! "${PRCC}" = "raw" ]; then
+        __PRF="${__PRF}_${PRCC}"
+    fi
 
     if [ ! "${NPEER}" = "0" ]; then
         __PRF="${__PRF}_${NPEER}_PEER_residuals"

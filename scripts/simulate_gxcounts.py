@@ -186,6 +186,9 @@ def sample_correlation(corrfile, n, s):
     return Xrand, X 
 
 
+def sample_gene_expression(rpkmfile, n, s):
+
+
 def simulate_cis(GT, icis, itf, cisparams, tfparams):
     n = GT.shape[0]
     s = GT.shape[1]
@@ -316,8 +319,8 @@ def plot_components(ax, data, xmax, xmin, nbin, ninterp, legend, interp = True, 
     ncol = data.shape[1]
     ymaxcal = 0
     for i in range(nrow):
-        yhist, _ = np.histogram(data[i, :], bins = bins, density = True)
-        yfreq = yhist #/ ncol
+        yhist, _ = np.histogram(data[i, :], bins = bins)
+        yfreq = yhist / ncol
         if interp:
             fy = interp1d(xbin, yfreq, kind='cubic')
             y = fy(x)
@@ -365,14 +368,17 @@ if __name__ == '__main__':
     nontf_genes = np.array([i for i in range(opts.ngene) if i not in tf_genes])
     trans_genes = [np.sort(np.random.choice(nontf_genes, opts.ntrans, replace=False)) for i in tf_genes]
 
-    # Simulate background and CF
-    if opts.gxcorr_file is None:
-        print ("Generating background gene expression from prior distributions using supplied options.")
-        GX_noise = simulate_noise(opts.ngene, opts.nsample, opts.noise_params)
-        GX_bg = GX_noise
-    else:
-        print ("Generating background gene expression by sampling GTEx data")
-        GX_noise, GX_bg = sample_correlation(opts.gxcorr_file, opts.ngene, opts.nsample)
+    # Shuffle gene expression count data of GTEx
+    
+
+    ### Simulate background and CF
+    ##if opts.gxcorr_file is None:
+    ##    print ("Generating background gene expression from prior distributions using supplied options.")
+    ##    GX_noise = simulate_noise(opts.ngene, opts.nsample, opts.noise_params)
+    ##    GX_bg = GX_noise
+    ##else:
+    ##    print ("Generating background gene expression by sampling GTEx data")
+    ##    GX_noise, GX_bg = sample_correlation(opts.gxcorr_file, opts.ngene, opts.nsample)
 
     # Simulate confounders
     GX_cf, confounders, cf_effectsize = simulate_confounders (opts.ngene, opts.nsample, opts.ncf, opts.cf_params, GT)

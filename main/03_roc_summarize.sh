@@ -59,6 +59,7 @@ for PARAMSTR in ${SIMPARAMS[@]}; do
                 if [ ${NULL} == "maf" ];  then __SIGMA_BETA=${TEJAAS_SIGMA_BETA_MAF}; fi
                 for SBETA in ${__SIGMA_BETA}; do
                     METHOD_VARIANT="${NULL}null_sb${SBETA}"
+                    if [ ! "${TEJAAS_CISMASK}" = "true" ]; then METHOD_VARIANT="${METHOD_VARIANT}_nomask"; fi
                     if [ "${KNN}" = "true" ]; then METHOD_VARIANT="${METHOD_VARIANT}_knn"; fi
                     if [ "${bTejaas}" = "true" ]; then
                         echo "${SCRIPTBEGIN} --method rr --mdir tejaas/${METHOD_VARIANT}/${PRCC}/peer${NPEER} --outprefix tejaas_${METHOD_VARIANT}_${PRCC}_peer${NPEER}" >> ${THISJOBFILE}
@@ -71,6 +72,6 @@ for PARAMSTR in ${SIMPARAMS[@]}; do
         done
     done
 
-    submit_job ${SPECIFIC_JOBSUBDIR} ${THISJOBNAME} None
+    #submit_job ${SPECIFIC_JOBSUBDIR} ${THISJOBNAME} None
 
 done

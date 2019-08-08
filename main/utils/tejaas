@@ -6,7 +6,7 @@ THISJOBDEPS=${PREPROC_JOBDEPS}
 # include submission helper
 source ${UTILSDIR}/submit_tejaas
 
-EXTRAFLAGS="--trim --cismask"
+EXTRAFLAGS="--trim"
 if [ "${SHUFFLE}" = "true" ]; then
     THISMETHOD="tejaas_rand"
     SHUFFLED_ID_FILE=${SIMGTFILE/\.vcf\.gz/\.shuf}
@@ -40,8 +40,14 @@ for PRIDX in ${!TEJAAS_PREPROC[*]}; do ## a funky construct to get the indices o
         if [ ${NULL} == "maf" ];  then __SIGMA_BETA=${TEJAAS_SIGMA_BETA_MAF}; fi
         for SBETA in ${__SIGMA_BETA}; do
 
-            __EFLAGS="${EXTRAFLAGS}" ## don't change the actual content of $EXTRAFLAGS within the loop
+            __EFLAGS="${EXTRAFLAGS}" ## because we don't want inplace modification of $EXTRAFLAGS within the loop
             METHOD_VARIANT="${NULL}null_sb${SBETA}"
+
+            if [ "${TEJAAS_CISMASK}" = "true" ]; then
+                __EFLAGS="${__EFLAGS} --cismask"
+            else
+                METHOD_VARIANT="${METHOD_VARIANT}_nomask"
+            fi
 
             if [ "${KNN}" = "true" ]; then
                 __EFLAGS="${__EFLAGS} --knn"
