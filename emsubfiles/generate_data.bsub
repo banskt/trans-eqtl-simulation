@@ -1,0 +1,70 @@
+#!/bin/bash
+#SBATCH -A cramer
+#SBATCH -p em
+#SBATCH --qos=short
+#SBATCH -t 0-2:00:00
+#SBATCH -n 8
+#SBATCH -N 1
+#SBATCH -J _JOB_NAME
+#SBATCH -o _JOB_NAME.out
+#SBATCH -e _JOB_NAME.err
+
+module load intel/compiler/64/2017/17.0.2
+module load intel/mkl/64/2017/2.174
+
+export OMP_NUM_THREADS=8
+
+MPYTHON=_PYT_ENV_
+SAMPLEGENOPY=_SAMGT_PY
+SIMULATEGXPY=_SIMGX_PY
+VCFFILES=_VCF_FLS_
+GTOUTFILE=_GTOT_FL_
+GXOUTFILE=_GXOT_FL_
+PARAMSTR=_PRM_STR_
+GXCORRFILE=_GX_CORR_
+
+SIMPARAM=( ${PARAMSTR//_/\ } ); # convert the string to an array of parameters
+
+NGENE=${SIMPARAM[0]}
+NSAMPLE=${SIMPARAM[1]}
+NCF=${SIMPARAM[2]}
+NCIS=${SIMPARAM[3]}
+NTF=${SIMPARAM[4]}
+NTRANS=${SIMPARAM[5]}
+NOISE_STD_SHAPE=${SIMPARAM[6]}
+NOISE_STD_SCALE=${SIMPARAM[7]}
+CF_SPARSITY=${SIMPARAM[8]}
+CF_MEAN=${SIMPARAM[9]}
+CF_STD=${SIMPARAM[10]}
+TFCIS_EFFECT=${SIMPARAM[11]}
+CIS_SHAPE=${SIMPARAM[12]}
+CIS_SCALE=${SIMPARAM[13]}
+TF_TRANS_SHAPE=${SIMPARAM[14]}
+TF_TRANS_SCALE=${SIMPARAM[15]}
+
+CORR_OPTION=""
+if [ ! -z ${GXCORRFILE} ]; then CORR_OPTION="--gxcorr ${GXCORRFILE}"; fi
+
+${MPYTHON} ${SAMPLEGENOPY} -n ${NGENE} \
+                             --input ${VCFFILES} \
+                             --out ${GTOUTFILE}
+
+${MPYTHON} ${SIMULATEGXPY} -n ${NGENE} \
+                               -s ${NSAMPLE} \
+                               -f ${NCF} \
+                               -c ${NCIS} \
+                               -t ${NTF} \
+                               -g ${NTRANS} \
+                               --noise ${NOISE_STD_SHAPE} ${NOISE_STD_SCALE} \
+                               --cf ${CF_SPARSITY} ${CF_MEAN} ${CF_STD} \
+                               --tfcis ${TFCIS_EFFECT} \
+                               --cis ${CIS_SHAPE} ${CIS_SCALE} \
+                               --tftrans ${TF_TRANS_SHAPE} ${TF_TRANS_SCALE} \
+                               --geno ${GTOUTFILE} \
+                               --out ${GXOUTFILE} \
+                               ${CORR_OPTION}
+
+### For debug on interactive shell
+### ${MPYTHON} ${SAMPLEGENOPY} -n ${NGENE} --input ${VCFFILES} --out ${GTOUTFILE}
+### ${MPYTHON} ${SIMULATEGXPY} -n ${NGENE} -s ${NSAMPLE} -f ${NCF} -c ${NCIS} -t ${NTF} -g ${NTRANS} --noise ${NOISE_STD_SHAPE} ${NOISE_STD_SCALE} --cf ${CF_SPARSITY} ${CF_MEAN} ${CF_STD} --tfcis ${TFCIS_EFFECT} --cis ${CIS_SHAPE} ${CIS_SCALE} --tftrans ${TF_TRANS_SHAPE} ${TF_TRANS_SCALE} --geno ${GTOUTFILE} --out ${GXOUTFILE} ${CORR_OPTION}
+

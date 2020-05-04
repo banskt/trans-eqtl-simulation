@@ -6,7 +6,9 @@ sys.path.append('utils/')
 from readgx import readgx
 
 # gxfile = '/scratch/sbanerj/trans-eqtl/input/gtex/expression/gtex_protein_coding_normalized_lmcorrected_withage_aa.txt'
-gxfile = '/scratch/sbanerj/trans-eqtl/input/gtex/expression/gtex_protein_coding_normalized_as.txt'
+# gxfile = '/scratch/sbanerj/trans-eqtl/input/gtex/expression/gtex_protein_coding_normalized_as.txt'
+# gxfile = '/usr/users/sbanerj/gtex_v8/expression/gtexv8_wb_raw_std_protein_coding.txt'
+gxfile = '/usr/users/sbanerj/gtex_v8/expression/gtexv8_aa_raw_std_protein_coding.txt'
 gx, donors, genes = readgx(gxfile)
 
 C = np.cov(gx.T)
@@ -23,5 +25,5 @@ print ("Eigen decomposition done.")
 
 Apart = Q @ np.diag(np.sqrt(Wsparse))
 print ("Created correlation structure. Saving...")
-outfile = '/scratch/sbanerj/trans-eqtl/simulation/gtex_correlation_normalized_as.npy'
+outfile = '/scratch/sbanerj/trans-eqtl/simulation/gtex_correlation_normalized_aa.npy'
 np.save(outfile, Apart)

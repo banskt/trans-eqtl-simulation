@@ -4,6 +4,7 @@
 #SBATCH -t 0-2:00:00
 #SBATCH -n 8
 #SBATCH -N 1
+#SBATCH -A all
 #SBATCH -C scratch
 #SBATCH -J _JOB_NAME
 #SBATCH -o _JOB_NAME.out
@@ -36,9 +37,9 @@ NOISE_STD_SCALE=${SIMPARAM[7]}
 CF_SPARSITY=${SIMPARAM[8]}
 CF_MEAN=${SIMPARAM[9]}
 CF_STD=${SIMPARAM[10]}
-CIS_EFFECT=${SIMPARAM[11]}
-TF_CIS_SHAPE=${SIMPARAM[12]}
-TF_CIS_SCALE=${SIMPARAM[13]}
+TFCIS_EFFECT=${SIMPARAM[11]}
+CIS_SHAPE=${SIMPARAM[12]}
+CIS_SCALE=${SIMPARAM[13]}
 TF_TRANS_SHAPE=${SIMPARAM[14]}
 TF_TRANS_SCALE=${SIMPARAM[15]}
 
@@ -57,8 +58,8 @@ ${MPYTHON} ${SIMULATEGXPY} -n ${NGENE} \
                                -g ${NTRANS} \
                                --noise ${NOISE_STD_SHAPE} ${NOISE_STD_SCALE} \
                                --cf ${CF_SPARSITY} ${CF_MEAN} ${CF_STD} \
-                               --cis ${CIS_EFFECT} \
-                               --tfcis ${TF_CIS_SHAPE} ${TF_CIS_SCALE} \
+                               --tfcis ${TFCIS_EFFECT} \
+                               --cis ${CIS_SHAPE} ${CIS_SCALE} \
                                --tftrans ${TF_TRANS_SHAPE} ${TF_TRANS_SCALE} \
                                --geno ${GTOUTFILE} \
                                --out ${GXOUTFILE} \
@@ -66,5 +67,5 @@ ${MPYTHON} ${SIMULATEGXPY} -n ${NGENE} \
 
 ### For debug on interactive shell
 ### ${MPYTHON} ${SAMPLEGENOPY} -n ${NGENE} --input ${VCFFILES} --out ${GTOUTFILE}
-### ${MPYTHON} ${SIMULATEGXPY} -n ${NGENE} -s ${NSAMPLE} -f ${NCF} -c ${NCIS} -t ${NTF} -g ${NTRANS} --noise ${NOISE_STD_SHAPE} ${NOISE_STD_SCALE} --cf ${CF_SPARSITY} ${CF_MEAN} ${CF_STD} --cis ${CIS_EFFECT} --tfcis ${TF_CIS_SHAPE} ${TF_CIS_SCALE} --tftrans ${TF_TRANS_SHAPE} ${TF_TRANS_SCALE} --geno ${GTOUTFILE} --out ${GXOUTFILE} ${CORR_OPTION}
+### ${MPYTHON} ${SIMULATEGXPY} -n ${NGENE} -s ${NSAMPLE} -f ${NCF} -c ${NCIS} -t ${NTF} -g ${NTRANS} --noise ${NOISE_STD_SHAPE} ${NOISE_STD_SCALE} --cf ${CF_SPARSITY} ${CF_MEAN} ${CF_STD} --tfcis ${TFCIS_EFFECT} --cis ${CIS_SHAPE} ${CIS_SCALE} --tftrans ${TF_TRANS_SHAPE} ${TF_TRANS_SCALE} --geno ${GTOUTFILE} --out ${GXOUTFILE} ${CORR_OPTION}
 

@@ -34,8 +34,13 @@ for PARAMSTR in ${SIMPARAMS[@]}; do
         PREPROC_JOBDEPS="None"
         MATRIXEQTL_JOBDEPS="None"
         TEJAAS_JOBDEPS="None"
-
-        JOBSUBDIR_SIM="${JOBSUBDIR}/${PARAMSTR}/sim${SIMINDEX}"
+        JPA_JOBDEPS="None"
+        
+        if [ -z "${SIMTYPE}" ]; then 
+            JOBSUBDIR_SIM="${JOBSUBDIR}/${PARAMSTR}/sim${SIMINDEX}"
+        else
+            JOBSUBDIR_SIM="${JOBSUBDIR}/${SIMTYPE}/${PARAMSTR}/sim${SIMINDEX}"
+        fi
         OUTDIR_SIM="${OUTDIRUP}/${PARAMSTR}/sim${SIMINDEX}"
         SIMGTFILE="${OUTDIR_SIM}/input/genotype.vcf.gz"
         SIMGXFILE="${OUTDIR_SIM}/input/expression.txt"
@@ -51,14 +56,17 @@ for PARAMSTR in ${SIMPARAMS[@]}; do
 
         if [ "${bPreprocessData}" = "true" ]; then 
             source ${UTILSDIR}/preprocess_data
-            echo "    ${PREPROC_JOBID} > Preprocess data: ${GENDATA_JOBDEPS}"
+            echo "    ${PREPROC_JOBID} > Preprocess data. ${GENDATA_JOBDEPS}"
         fi
 
-        for NPEER in ${NPEERCORR}; do
+        for NPEER in ${MEQTL_NPEER}; do
             if [ "${bMatrixEqtl}" = "true" ];   then source ${UTILSDIR}/matrix_eqtl; fi
             if [ "${bMEqtlRandom}" = "true" ];  then SHUFFLE=true; source ${UTILSDIR}/matrix_eqtl; SHUFFLE=false; fi
-            #if [ "${bJPA}" = "true" ];          then source ${UTILSDIR}/jpa; fi
-            #if [ "${bJPARandom}" = "true" ];    then SHUFFLE=true; source ${UTILSDIR}/jpa; SHUFFLE=false; fi
+        done
+
+        for NPEER in ${JPA_NPEER}; do
+            if [ "${bJPA}" = "true" ];          then source ${UTILSDIR}/jpa; fi
+            if [ "${bJPARandom}" = "true" ];    then SHUFFLE=true; source ${UTILSDIR}/jpa; SHUFFLE=false; fi
         done
 
         for NPEER in ${TEJAAS_NPEER}; do

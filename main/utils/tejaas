@@ -19,21 +19,22 @@ GENEINFOFILE=${SIMGXFILE/\.txt/\.gtf\.gz}
 for PRIDX in ${!TEJAAS_PREPROC[*]}; do ## a funky construct to get the indices of the array
 
     PRCC=${TEJAAS_PREPROC[PRIDX]}
-    KNN=${TEJAAS_KNN[PRIDX]}
+    KNN_NBR=${TEJAAS_KNN[PRIDX]}
 
     __DIR=$( dirname ${GXPROCFILE} )
     __FIL=$( basename ${GXPROCFILE} )
-    __PRF="${__FIL%%.*}"
-
-    if [ ! "${PRCC}" = "raw" ]; then
-        __PRF="${__PRF}_${PRCC}"
-    fi
+    __PRF="${__FIL%%.*}_${PRCC}"
 
     if [ ! "${NPEER}" = "0" ]; then
         __PRF="${__PRF}_${NPEER}_PEER_residuals"
     fi
+    INPUTGXFILE="${__DIR}/${__PRF}_norm.txt"
 
-    INPUTGXFILE="${__DIR}/${__PRF}.txt"
+    CC_INPUTGXFILE="None"
+    if [ "${TEJAAS_TG_PREPROC}" != "None" ]; then
+        __TGP="${__FIL%%.*}_${TEJAAS_TG_PREPROC}"
+        CC_INPUTGXFILE="${__DIR}/${__TGP}_norm.txt"
+    fi
 
     for NULL in ${TEJAAS_NULL}; do
         if [ ${NULL} == "perm" ]; then __SIGMA_BETA=${TEJAAS_SIGMA_BETA_PERM}; fi
@@ -49,15 +50,16 @@ for PRIDX in ${!TEJAAS_PREPROC[*]}; do ## a funky construct to get the indices o
                 METHOD_VARIANT="${METHOD_VARIANT}_nomask"
             fi
 
-            if [ "${KNN}" = "true" ]; then
-                __EFLAGS="${__EFLAGS} --knn"
-                METHOD_VARIANT="${METHOD_VARIANT}_knn"
+            __EFLAGS="${__EFLAGS} --knn ${KNN_NBR}"
+            PRCCMOD=${PRCC}
+            if [ ! "${KNN_NBR}" = 0 ]; then
+                PRCCMOD="${PRCCMOD}_knn${KNN_NBR}"
             fi
 
-            SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/${PRCC}/peer${NPEER}"
-            SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/${PRCC}/peer${NPEER}"
-            JOBPREFIX="${THISMETHOD}_${METHOD_VARIANT}_sim${SIMINDEX}_peer${NPEER}_${PRCC}_${PARAMSTR}_${RANDSTRING}"
-            submit_tejaas ${PYTHON36} ${TEJAASPY} ${SIMGTFILE} ${INPUTGXFILE} \
+            SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/${PRCCMOD}/peer${NPEER}"
+            SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/${PRCCMOD}/peer${NPEER}"
+            JOBPREFIX="${THISMETHOD}_${METHOD_VARIANT}_sim${SIMINDEX}_${PRCCMOD}_peer${NPEER}_${PARAMSTR}_${RANDSTRING}"
+            submit_tejaas ${PYTHON36} ${TEJAASPY} ${SIMGTFILE} ${INPUTGXFILE} ${CC_INPUTGXFILE} \
                           ${GENEINFOFILE} ${MAF_FILE} \
                           ${TEJAAS_MODEL} ${NULL} \
                           ${TEJAAS_SNPS_THRES} ${TEJAAS_GENE_THRES} ${SBETA} \
@@ -67,9 +69,9 @@ for PRIDX in ${!TEJAAS_PREPROC[*]}; do ## a funky construct to get the indices o
                           ${THISJOBDEPS} ${MASTER_BSUBDIR} \
                           TEJAAS_JOBDEPS "${TEJAAS_JOBDEPS}"
             SUBMITTED_JOBIDS=${TEJAAS_JOBDEPS#*${SUBMITTED_JOBIDS}*:}
-            __MSTRING="${METHOD_VARIANT} + ${PRCC} + ${NPEER} peer"
+            __MSTRING="${METHOD_VARIANT} on ${PRCCMOD} + ${NPEER} peer"
             if [ "${SHUFFLE}" = "true" ]; then __MSTRING="${__MSTRING} + shuffled genotype"; fi
-            echo "    ${SUBMITTED_JOBIDS} > ${__MSTRING}: ${THISJOBDEPS}"
+            echo "    ${SUBMITTED_JOBIDS} > ${__MSTRING}. ${THISJOBDEPS}"
         done
     done
 done

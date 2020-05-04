@@ -5,11 +5,8 @@ function submit_job_echo() {
     local JOBNAME=$2
     local DEPS=$3
     local CWD=`pwd`
-    
     cd ${DIR}
-    
     echo ${JOBNAME}.bsub
-    
     cd ${CWD}
 }
 
@@ -18,21 +15,17 @@ function submit_job() {
     local DIR=$1
     local JOBNAME=$2
     local DEPS=$3
-    local CWD=`pwd`
-    
+    local CWD=$( pwd )
     cd ${DIR}
 
     SUCCESS=false
 
     while [ "${SUCCESS}" = "false" ]; do
         if [ ! "${DEPS}" = "None" ]; then
-            #echo "Submitting job with dependency ${DEPS}"
-            STDOUTPUT=$( sbatch --dependency=${DEPS} ${JOBNAME}.sh )
+            STDOUTPUT=$( sbatch --dependency=${DEPS} ${JOBNAME}.sbatch )
         else
-            #echo "No dependencies"
-            STDOUTPUT=$( sbatch ${JOBNAME}.sh )
+            STDOUTPUT=$( sbatch ${JOBNAME}.sbatch )
         fi
-
         if [ "${STDOUTPUT%% *}" = "Submitted" ]; then 
             SUCCESS=true
             sleep 1 # pause to be kind to the scheduler
@@ -42,7 +35,40 @@ function submit_job() {
     done
 
     JOBID="${STDOUTPUT##* }"
-    
+    cd ${CWD}
+    echo ${JOBID}
+}
+
+function submit_job_array() {
+
+    local DIR=$1
+    local JOBNAME=$2
+    local DEPS=$3
+    local NARR=$4
+    local CWD=`pwd`
+
+    cd ${DIR}
+
+    SUCCESS=false
+
+    while [ "${SUCCESS}" = "false" ]; do
+        if [ ! "${DEPS}" = "None" ]; then
+            STDOUTPUT=$( sbatch --dependency=${DEPS} --array=0-${NARR} ${JOBNAME}.sbatch )
+        else
+            #STDOUTPUT=$( sbatch --array=0-${NARR}%20 ${JOBNAME}.slurm )
+            STDOUTPUT=$( sbatch --array=0-${NARR} ${JOBNAME}.sbatch )
+        fi
+
+        if [ "${STDOUTPUT%% *}" = "Submitted" ]; then
+            SUCCESS=true
+            sleep 1 # pause to be kind to the scheduler
+        else
+            sleep 10 # pause more to get the system back to working
+        fi
+    done
+
+    JOBID="${STDOUTPUT##* }"
+
     cd ${CWD}
     echo ${JOBID}
 }

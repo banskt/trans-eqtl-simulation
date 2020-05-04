@@ -2,8 +2,10 @@ import os
 import argparse
 import collections
 import numpy as np
+import pandas as pd
 import scipy.stats as stats
 from sklearn import linear_model
+from sklearn.decomposition import PCA
 
 def parse_args():
 
@@ -35,7 +37,7 @@ def parse_args():
                         nargs = '*',
                         default = ['norm'],
                         dest = 'methods',
-                        help = 'which method to apply: norm, qn, cclm or any combination')
+                        help = 'which method to apply: norm, qn, cclm, cclasso, knn or any combination')
                         
 
     opts = parser.parse_args()
@@ -217,6 +219,11 @@ def gtex_v6_preproc(GX):
     return R
 
 
+def gtex_v6_preproc_sim(GX):
+    R = inverse_normal_transform(GX)
+    return R 
+
+
 def gtex_v6p_preproc(GX):
     tmm_counts_df = edgeR_cpm(counts_df, normalized_lib_sizes=True)
     R = inverse_normal_transform(tmm_counts_df)
@@ -232,6 +239,7 @@ def covcorrlm(X, W):
     Xcorr = X - linreg.predict(Wnorm.T).T
     return Xcorr
 
+
 def covcorrlasso(X, W, alpha = 0.05):
     # inputs: X of shape G x N (G = number of genes, N = number of samples)
     #         W of shape C x N (C = number of covariates)
@@ -245,9 +253,41 @@ def covcorrlasso(X, W, alpha = 0.05):
     return Xcorr
 
 
-def pp_options(method, gx, cov = None):
+def covcorrknn(X, kneighbor):
+    # input: X of shape G x N (G = number of genes, N = number of samples)
+    XT = X.T
+    pca = PCA(n_components=min(X.shape[0], X.shape[1]))
+    pca.fit(XT) # requires N x G
+    Xpca = pca.transform(XT)
+
+    def gene_distance(a, b):
+        return np.linalg.norm(a - b)
+
+    nsample = XT.shape[0]
+    distance_matrix = np.zeros((nsample, nsample))
+    for i in range(nsample):
+        for j in range(i+1, nsample):
+            dist = gene_distance(Xpca[i,:], Xpca[j,:])
+            distance_matrix[i, j] = dist
+            distance_matrix[j, i] = dist
+
+    gx_knn = np.zeros_like(XT)
+    neighbor_list = list()
+
+    for i in range(nsample):
+        neighbors = np.argsort(distance_matrix[i, :])[:kneighbor + 1][1:]
+        gx_knn[i, :] = XT[i, :] - np.mean(XT[neighbors, :], axis = 0)
+
+    return gx_knn.T
+
+
+def pp_options(method, _X, cov = None):
     # a pythonic dictionary runs through all functions and creates the full dictionary
     # hence if-else is used.
+    gx = _X.copy()
+    #if method == 'raw':
+    #    print('   > Keep raw file')
+    #    res = gx
     if method == 'norm':
         print('   > Center and scale')
         res = normalize_center(gx)
@@ -255,14 +295,19 @@ def pp_options(method, gx, cov = None):
         print('   > QN only (no inverse normal transformation)')
         res = normalize_quantiles(gx)
     elif method == 'qn':
-        print('   > QN')
-        res = gtex_v6_preproc(gx)
+        print('   > QN (misnomer. actually only inverse normal transformation)')
+        #res = gtex_v6_preproc(gx)
+        res = gtex_v6_preproc_sim(gx)
     elif method == 'cclm':
         print('   > Covariate correction with linear model')
         res = covcorrlm(gx, cov)
     elif method == 'cclasso':
         print('   > Adaptive covariate correction using LASSO')
         res = covcorrlasso(gx, cov)
+    elif method.startswith('knn'):
+        kneighbor = int(method[3:])
+        print('   > KNN correction')
+        res = covcorrknn(gx, kneighbor)
     return res
 
 

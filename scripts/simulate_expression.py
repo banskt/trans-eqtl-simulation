@@ -64,11 +64,11 @@ def parse_args():
                         help = 'number of target genes for each TF')
 
 
-    parser.add_argument('--tfcis',
+    parser.add_argument('--cis',
                         nargs = 2,
                         type = float,
                         default = [4.0, 0.1],
-                        dest = 'tfcis_params',
+                        dest = 'cis_params',
                         metavar = 'FLOAT',
                         help = 'Shape (k) and scale (theta) parameters for the Gamma distribution from which cis-effects of TF are sampled')
 
@@ -107,11 +107,11 @@ def parse_args():
                         help = 'Shape (k) and scale (theta) parameters for the Gamma distribution from which standard deviation of noise is sampled')
 
 
-    parser.add_argument('--cis',
+    parser.add_argument('--tfcis',
                         nargs = 1,
                         type = float,
                         default = [0.6],
-                        dest = 'cis_params',
+                        dest = 'tfcis_params',
                         metavar = 'FLOAT',
                         help = 'Fixed value of the cis-effects')
 
@@ -191,8 +191,8 @@ def simulate_cis(GT, icis, itf, cisparams, tfparams):
     s = GT.shape[1]
     X = np.zeros((n, s))
     itf_idx = np.array([np.where(icis == i)[0][0] for i in itf])
-    bcis = np.repeat(cisparams, icis.shape[0])
-    btf  = np.random.gamma(tfparams[0], tfparams[1], size = itf.shape[0])
+    bcis = np.random.gamma(cisparams[0], cisparams[1], size = icis.shape[0])
+    btf  = np.repeat(tfparams, itf.shape[0])
     bvec = np.multiply(bcis, sample_sign(bcis.shape[0]))
     bvec[itf_idx] = np.multiply(btf, sample_sign(btf.shape[0]))
     for i, idx in enumerate(icis):
@@ -205,6 +205,7 @@ def simulate_trans(GX, itf, itrans, params):
     btrans = np.zeros((GX.shape[0], itf.shape[0]))
     for i, targetidx in enumerate(itrans):
         btrans[targetidx, i] = np.random.gamma(params[0], params[1], size = targetidx.shape[0])
+        btrans[targetidx, i] = np.multiply(btrans[targetidx, i], sample_sign(targetidx.shape[0]))
     X = np.einsum('ij, jk', btrans, GX[itf, :])
     return X, btrans
 

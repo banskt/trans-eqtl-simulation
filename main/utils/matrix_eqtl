@@ -22,20 +22,14 @@ for PRCC in ${MATRIXEQTL_PREPROC}; do
 
     __DIR=$( dirname ${GXPROCFILE} )
     __FIL=$( basename ${GXPROCFILE} )
-    __PRF="${__FIL%%.*}"
-
-    if [ ! "${PRCC}" = "raw" ]; then
-        __PRF="${__PRF}_${PRCC}"
-    fi
-
+    __PRF="${__FIL%%.*}_${PRCC}"
     if [ ! "${NPEER}" = "0" ]; then
         __PRF="${__PRF}_${NPEER}_PEER_residuals"
     fi
-
     INPUTGXFILE="${__DIR}/${__PRF}_norm.txt"
 
     GENEPOSFILE=${SIMGXFILE/\.txt/\.genepos}
-    MATRIXEQTL_JOBNAME="${THISMETHOD}_${PARAMSTR}_sim${SIMINDEX}_npeer${NPEER}_${PRCC}_${RANDSTRING}"
+    MATRIXEQTL_JOBNAME="${THISMETHOD}_sim${SIMINDEX}_${PRCC}_peer${NPEER}_${PARAMSTR}_${RANDSTRING}"
 
     sed -e "s|_JOB_NAME|${MATRIXEQTL_JOBNAME}|g;
             s|_MEQTL_R_|${MATRIXEQTL_R}|g;
@@ -49,7 +43,7 @@ for PRCC in ${MATRIXEQTL_PREPROC}; do
             s|_CIS_WIN_|${MEQTL_CIS_WINDOW}|g;
             s|_MEQTLMOD|${MATRIXEQTL_MODEL}|g;
             s|_EXT_FLAG|\"${EXTRAFLAGS}\"|g;
-           " ${MASTER_BSUBDIR}/matrixeqtl.bsub > ${SPECIFIC_JOBSUBDIR}/${MATRIXEQTL_JOBNAME}.sh
+           " ${MASTER_BSUBDIR}/matrixeqtl.bsub > ${SPECIFIC_JOBSUBDIR}/${MATRIXEQTL_JOBNAME}.sbatch
 
     MATRIXEQTL_JOBID=$( submit_job ${SPECIFIC_JOBSUBDIR} ${MATRIXEQTL_JOBNAME} ${PREPROC_JOBDEPS} )
     MATRIXEQTL_JOBDEPS=$( add_deps "${MATRIXEQTL_JOBDEPS}" ${MATRIXEQTL_JOBID} )
@@ -59,6 +53,6 @@ for PRCC in ${MATRIXEQTL_PREPROC}; do
         __STDSTR="${__STDSTR} + shuffled genotype"
     fi
 
-    echo "${__STDSTR}: ${PREPROC_JOBDEPS}"
+    echo "${__STDSTR}. ${PREPROC_JOBDEPS}"
 
 done

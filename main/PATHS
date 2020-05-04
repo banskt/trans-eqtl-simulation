@@ -11,7 +11,7 @@ CURDIRUP="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 UTILSDIR=$(abs_path "${CURDIRUP}/utils")
 CONFIGDIR=$(abs_path "${CURDIRUP}/configs")
 SCRIPTDIR=$(abs_path "${CURDIRUP}/../scripts")
-MASTER_BSUBDIR=$(abs_path "${CURDIRUP}/../bsubfiles")
+MASTER_BSUBDIR=$(abs_path "${CURDIRUP}/../emsubfiles")
 JOBSUBDIR=$(abs_path "${CURDIRUP}/../jobsubs")
 ANALYSISDIR=$(abs_path "${CURDIRUP}/../analysis")
 

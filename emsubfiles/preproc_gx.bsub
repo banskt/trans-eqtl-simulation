@@ -1,0 +1,49 @@
+#!/bin/bash
+#SBATCH -A cramer
+#SBATCH -p em
+#SBATCH --qos=short
+#SBATCH -t 0-2:00:00
+#SBATCH -n 8
+#SBATCH -N 1
+#SBATCH -J _JOB_NAME
+#SBATCH -o _JOB_NAME.out
+#SBATCH -e _JOB_NAME.err
+
+module load intel/compiler/64/2017/17.0.2
+module load intel/mkl/64/2017/2.174
+module load R/3.4.1
+
+export OMP_NUM_THREADS=8
+
+MPYTHON=_PYT_ENV_
+PREPROCPY=_PRCC_PY_
+PEERCRXN_R=_PRCXN_R_
+
+GXOUTFILE=_GXOT_FL_
+CFOUTFILE=_CFOT_FL_
+GXPRCFILE=_GXPR_FL_
+
+PREPROC_METHODS=_PRCC_MT_
+PEERTRG_METHODS=_PEER_MT_
+NPEERCORR=_PEER_FT_
+
+# keep the raw file
+cp ${GXOUTFILE} ${GXPRCFILE}
+
+${MPYTHON} ${PREPROCPY} -g ${GXOUTFILE} -c ${CFOUTFILE} -o ${GXPRCFILE} -m ${PREPROC_METHODS}
+
+for NPEER in ${NPEERCORR}; do
+    if [ ! "${NPEER}" = "0" ]; then
+        for PRMETHOD in ${PEERTRG_METHODS}; do
+            GXOUTDIR=$( dirname ${GXPRCFILE} )
+            GXBASENAME=$( basename ${GXPRCFILE} )
+            GXOUTPREFIX="${GXBASENAME%%.*}"
+
+            PEER_INFILE="${GXOUTDIR}/${GXOUTPREFIX}_${PRMETHOD}.txt"
+            PEER_OUTFILE="${GXOUTDIR}/${GXOUTPREFIX}_${PRMETHOD}_${NPEER}_PEER_residuals.txt"
+
+            Rscript ${PEERCRXN_R} ${PEER_INFILE} ${GXOUTPREFIX}_${PRMETHOD}_${NPEER} --n ${NPEER} -o ${GXOUTDIR}
+            ${MPYTHON} ${PREPROCPY} -g ${PEER_OUTFILE} -c ${CFOUTFILE} -o ${PEER_OUTFILE} -m 'norm'
+        done
+    fi
+done

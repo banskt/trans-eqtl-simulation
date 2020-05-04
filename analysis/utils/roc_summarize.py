@@ -71,7 +71,7 @@ def read_data(key, filename, truth):
     valres = list()
     fdr = list()
     if key == 'jpa':
-        for key, value in load_results.jpa_scores(filename).items():
+        for key, value in load_results.jpa(filename).items():
             caus = 1 if key in truth else 0
             valres.append(ValidateResult(rsid = key, stat = value, causality = caus))
     if key == 'matrixeqtl':
@@ -162,7 +162,7 @@ for i, simidx in enumerate(simlist):
     sim_cis_file    = os.path.join(opts.srcdir, simdir, "input/expression.cis")
 
     simoutmdir = os.path.join(opts.srcdir, simdir, opts.method_dir)
-    if opts.method == 'jpa':        simoutfile = os.path.join(simoutmdir, "all_jpa_pvals.txt")
+    if opts.method == 'jpa':        simoutfile = os.path.join(simoutmdir, "all_jpa.txt")
     if opts.method == 'rr':         simoutfile = os.path.join(simoutmdir, "rr.txt")
     if opts.method == 'matrixeqtl': simoutfile = os.path.join(simoutmdir, "trans_eqtl.txt")
 

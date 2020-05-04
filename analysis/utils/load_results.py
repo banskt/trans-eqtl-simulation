@@ -21,21 +21,15 @@ def scorelist2dict(rsids, scores):
 
 def tejaas(filepath):
     rsids = list()
-    qscales = list()
+    pvals = list()
     with open(filepath, 'r') as mfile:
         next(mfile)
         for line in mfile:
-            arr   = line.strip().split("\t")
-            rsid  = arr[0]
-            p     = float(arr[5])
-            q     = float(arr[2])
-            mu    = float(arr[3])
-            sigma = float(arr[4])
-            qscale = (q - mu) / sigma
+            arr   = line.strip().split()
+            rsid = arr[0].strip()
+            pval = float(arr[7].strip())
             rsids.append(rsid)
-            qscales.append(qscale)
-    pvalarr = 2.0 * (1 - stats.norm.cdf(np.abs(qscales)))
-    pvals = list(pvalarr)
+            pvals.append(pval)
     res = plist2dict(rsids, pvals)
     return res
 
@@ -109,60 +103,3 @@ def matrixeqtl_fdr(filepath):
         pvals.append(np.min(val))
     res = plist2dict(rsids, pvals)
     return res
-
-
-##def matrixeqtl(filepath):
-##    pvals = list()
-##    rsids = list()
-##    with open(filepath, 'r') as mfile:
-##        next(mfile)
-##        for line in mfile:
-##            arr  = line.strip().split("\t")
-##            rsid = arr[0]
-##            pval = float(arr[4])
-##            if rsid not in rsids:
-##                rsids.append(rsid)
-##                pvals.append(pval)
-##    res = plist2dict(rsids, pvals)
-##    return res
-
-##def matrixeqtl_fdr(filepath):
-##    pvals = list()
-##    rsids = list()
-##    with open(filepath, 'r') as mfile:
-##        next(mfile)
-##        for line in mfile:
-##            arr  = line.strip().split("\t")
-##            rsid = arr[0]
-##            fdr  = float(arr[5])
-##            if rsid not in rsids:
-##                rsids.append(rsid)
-##                pvals.append(fdr)
-##    res = plist2dict(rsids, pvals)
-##    return res
-
-
-##def matrixeqtl_old(filepath):
-##    res = dict()
-##    with open(filepath, 'r') as mfile:
-##        next(mfile)
-##        for line in mfile:
-##            arr  = line.strip().split("\t")
-##            rsid = arr[0]
-##            pval = float(arr[4])
-##            if rsid not in res:
-##                res[rsid] = -np.log10(pval)
-##    
-##    return res
-
-##def matrixeqtl_fdr_old(filepath):
-##    res = dict()
-##    with open(filepath, 'r') as mfile:
-##        next(mfile)
-##        for line in mfile:
-##            arr  = line.strip().split("\t")
-##            rsid = arr[0]
-##            fdr  = float(arr[5])
-##            if rsid not in res:
-##                res[rsid] = -np.log10(fdr)
-##    return res

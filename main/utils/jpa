@@ -1,93 +1,59 @@
 #!/bin/bash
 
-THISMETHOD="tejaas"
-THISJOBDEPS=${PREPROC_JOBDEPS}
-
-# include submission helper
-source ${UTILSDIR}/submit_tejaas
-
-EXTRAFLAGS="--trim --cismask"
+THISMETHOD="jpa"
+GENEINFOFILE=${SIMGXFILE/\.txt/\.gtf\.gz}
+EXTRAFLAGS="--trim"
 if [ "${SHUFFLE}" = "true" ]; then
-    THISMETHOD="tejaas_rand"
+    THISMETHOD="jpa_rand"
     SHUFFLED_ID_FILE=${SIMGTFILE/\.vcf\.gz/\.shuf}
     EXTRAFLAGS="$EXTRAFLAGS --shuffle-with $SHUFFLED_ID_FILE"
 fi
 
-MAF_FILE=${SIMGTFILE/\.vcf\.gz/\.altfreq}
-GENEINFOFILE=${SIMGXFILE/\.txt/\.gtf\.gz}
+for PRIDX in ${!JPA_PREPROC[*]}; do ## a funky construct to get the indices of the array
 
-for PRCC in ${TEJAAS_PREPROC}; do
+    PRCC=${JPA_PREPROC[PRIDX]}
+    KNN_NBR=${JPA_KNN[PRIDX]}
 
     __DIR=$( dirname ${GXPROCFILE} )
     __FIL=$( basename ${GXPROCFILE} )
     __PRF="${__FIL%%.*}_${PRCC}"
-
     if [ ! "${NPEER}" = "0" ]; then
         __PRF="${__PRF}_${NPEER}_PEER_residuals"
     fi
-
     INPUTGXFILE="${__DIR}/${__PRF}_norm.txt"
+    __EFLAGS="${EXTRAFLAGS} --knn ${KNN_NBR}" ## because we don't want inplace modification of $EXTRAFLAGS within the loop
 
-    for NULL in ${TEJAAS_NULL}; do
-        if [ ${NULL} == "perm" ]; then __SIGMA_BETA=${TEJAAS_SIGMA_BETA_PERM}; fi
-        if [ ${NULL} == "maf" ];  then __SIGMA_BETA=${TEJAAS_SIGMA_BETA_MAF}; fi
-        for SBETA in ${__SIGMA_BETA}; do
-            METHOD_VARIANT="${NULL}null_sb${SBETA}"
-            SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/${PRCC}/peer${NPEER}"
-            SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/${PRCC}/peer${NPEER}"
 
-            JOBPREFIX="${THISMETHOD}_${METHOD_VARIANT}_${PARAMSTR}_sim${SIMINDEX}_peer${NPEER}_${PRCC}_${RANDSTRING}"
-
-            submit_tejaas ${PYTHON36} ${TEJAASPY} ${SIMGTFILE} ${INPUTGXFILE} \
-                          ${GENEINFOFILE} ${MAF_FILE} \
-                          ${TEJAAS_MODEL} ${NULL} \
-                          ${TEJAAS_SNPS_THRES} ${TEJAAS_GENE_THRES} ${SBETA} \
-                          "${EXTRAFLAGS}" \
-                          ${SPECIFIC_JOBSUBDIR} ${SPECIFIC_OUTDIR} ${JOBPREFIX} \
-                          ${MAX_NSNP_PERJOB} \
-                          ${THISJOBDEPS} ${MASTER_BSUBDIR} \
-                          TEJAAS_JOBDEPS "${TEJAAS_JOBDEPS}"
-
-        done
-    done
-done
-
-INPUTGXFILE="${SIMGXFILE}"
-if [ ! "${NPEER}" = "0" ] && [ ! "${NPEER}" = "None" ]; then
-    __DIR=$( dirname ${SIMGXFILE} )
-    __FIL=$( basename ${SIMGXFILE} )
-    __PRF="${__FIL%%.*}_${NPEER}"
-    INPUTGXFILE="${__DIR}/${__PRF}_PEER_residuals.txt"
-fi
-
-if [ "${RUNJPA}" = "true" ]; then
-    METHOD_VARIANT="jpa"
-    if [ "${NPEER}" = "None" ]; then
-        SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
-        SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}"
-    else
-        SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/npeer${NPEER}"
-        SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${METHOD_VARIANT}/npeer${NPEER}"
+    PRCCMOD=${PRCC}
+    if [ ! "${KNN_NBR}" = "0" ]; then
+        PRCCMOD="${PRCCMOD}_knn${KNN_NBR}"
     fi
+    SPECIFIC_JOBSUBDIR="${JOBSUBDIR_SIM}/${THISMETHOD}/${PRCCMOD}/peer${NPEER}"
+    SPECIFIC_OUTDIR="${OUTDIR_SIM}/${THISMETHOD}/${PRCCMOD}/peer${NPEER}"
+    NULLSCORE_FILE="${SPECIFIC_OUTDIR}/null_scores.txt"
+    JPA_JOBNAME="${THISMETHOD}_sim${SIMINDEX}_${PRCCMOD}_peer${NPEER}_${PARAMSTR}_${RANDSTRING}"
 
     if [ -d ${SPECIFIC_JOBSUBDIR} ]; then rm -rf ${SPECIFIC_JOBSUBDIR}; fi; mkdir -p ${SPECIFIC_JOBSUBDIR}
     if [ ! -d ${SPECIFIC_OUTDIR} ];  then mkdir -p ${SPECIFIC_OUTDIR}; fi
-
-    NULLSCORE_FILE="${SPECIFIC_OUTDIR}/null_scores.txt"
-    JOBPREFIX="${THISMETHOD}_${METHOD_VARIANT}_${PARAMSTR}_sim${SIMINDEX}_npeer${NPEER}_${RANDSTRING}"
-
-    sed "s|_JOB_NAME|${JOBPREFIX}|g;
+    sed "s|_JOB_NAME|${JPA_JOBNAME}|g;
          s|_PYT_ENV_|${PYTHON36}|g;
          s|_TEJ_PYT_|${TEJAASPY}|g;
-         s|_TEJ_NUL_|${TEJAASNULL}|g;
          s|_GT_FILE_|${SIMGTFILE}|g;
          s|_EXPR_FL_|${INPUTGXFILE}|g;
          s|_GEN_POSF|${GENEINFOFILE}|g;
          s|_OUT_PRFX|${SPECIFIC_OUTDIR}/all|g;
          s|_NUL_FIL_|${NULLSCORE_FILE}|g;
          s|_CIS_WIN_|0|g;
-         s|_EXT_FLAG|\"${EXTRAFLAGS}\"|g;
-        " ${MASTER_BSUBDIR}/jpa.bsub > ${SPECIFIC_JOBSUBDIR}/${JOBPREFIX}.bsub
+         s|_EXT_FLAG|\"${__EFLAGS}\"|g;
+        " ${MASTER_BSUBDIR}/jpa.bsub > ${SPECIFIC_JOBSUBDIR}/${JPA_JOBNAME}.sbatch
+    JPA_JOBID=$( submit_job ${SPECIFIC_JOBSUBDIR} ${JPA_JOBNAME} ${PREPROC_JOBDEPS} )
+    JPA_JOBDEPS=$( add_deps "${JPA_JOBDEPS}" ${JPA_JOBID} )
 
-    submit_job ${SPECIFIC_JOBSUBDIR} ${JOBPREFIX} ${THISJOBDEPS}
-    TEJAAS_JOBDEPS=$( add_deps "${TEJAAS_JOBDEPS}" ${JOBPREFIX} )
+    __STDSTR="    ${JPA_JOBID} > JPA on ${PRCCMOD} + ${NPEER} peer"
+    if [ "${SHUFFLE}" = "true" ]; then
+        __STDSTR="${__STDSTR} + shuffled genotype"
+    fi
+
+    echo "${__STDSTR}. ${PREPROC_JOBDEPS}"
+
+done

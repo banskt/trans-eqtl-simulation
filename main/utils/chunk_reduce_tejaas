@@ -15,8 +15,7 @@ function tejaas_chunk_reduce() {
     local NCHUNK=$2
     local CWD=$( pwd )
     cd $DIR
-    for EXT in rr.txt gene_snp_list.txt; do
-    # for EXT in jpa.txt rr.txt gene_snp_list.txt rr_it0.txt rr_it1.txt; do
+    for EXT in rr.txt gene_snp_list.txt gene_snp_list_knn.txt; do
 
         # start the process only if chunk000 has been created
         if [ -f chunk000_${EXT} ]; then
@@ -25,12 +24,6 @@ function tejaas_chunk_reduce() {
             head -n 1 chunk000_${EXT} > ${EXT}
             if [ -f ${EXT} ]; then
 
-                # calculate total number of chunks expected
-                #GENOTYPEFILE=${GENO_FMT/\[CHRM\]/${CHRM}}
-                #NSNPS=$( zcat ${GENOTYPEFILE} | wc -l )
-                #NCHUNK=$(echo $(( NSNPS/MAX_NSNP_PERJOB )))
-                #echo "${DIR} --> ${EXT} --> ${NCHUNK} chunks."
-    
                 # loop over all chunks and count the number of SNPs for which the statistic has been calculated
                 NCALCSNPS=1
                 COLLECT=true
@@ -49,15 +42,15 @@ function tejaas_chunk_reduce() {
                 done
     
                 # after all files have been collected (COLLECT=true), check if the line numbers match
-                # if the line numbers don't match, then there is some unknow error.
+                # if the line numbers don't match, then there is some unknown error.
                 # Investigate.
                 if [ "${COLLECT}" = "true" ]; then
                     NLINES_EXT=$( wc -l ${EXT} | awk '{print $1}' )
                     if [ "${NLINES_EXT}" -eq "${NCALCSNPS}" ]; then
                         echo "${DIR} --> ${EXT} --> Done."
                         # Now you can remove the chunks
-                        # wait what if some chunk has failed while running? i.e. have less SNPs than it should have
-                        # rm -rf chunk*_${EXT} 
+                        # If some chunk has failed while running, it will have less SNPs than it should have
+                        rm -rf chunk*_${EXT} 
                     else
                         echo "${DIR} --> ${EXT} --> Line numbers do not match."
                     fi

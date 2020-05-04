@@ -5,28 +5,25 @@ function submit_tejaas() {
     local tejaaspy=$2
     local genotype=$3
     local expression=$4
-    local geneinfo=$5
-    local maffile=$6
-    local method=$7
-    local null=$8
-    local snpthres=$9
-    local genethres=${10}
-    local sbeta=${11}
-    local extraflags=${12}
-    local jobsubdir=${13}
-    local outdir=${14}
-    local jobprefix=${15}
-    local nmax=${16}
-    local thisjobdep=${17}
-    local bsubdir=${18}
-    local __jobdeps=${19} ## name of the bash variable
-    local jobdeps=${20}   ## contents of the bash variable
+    local corrected_expression=$5
+    local geneinfo=$6
+    local maffile=$7
+    local method=$8
+    local null=$9
+    local snpthres=${10}
+    local genethres=${11}
+    local sbeta=${12}
+    local extraflags=${13}
+    local jobsubdir=${14}
+    local outdir=${15}
+    local jobprefix=${16}
+    local nmax=${17}
+    local thisjobdep=${18}
+    local bsubdir=${19}
+    local __jobdeps=${20} ## name of the bash variable
+    local jobdeps=${21}   ## contents of the bash variable
     local jobname=0
     local i=0
-    local index=0
-    local includesnps=0
-    local startsnp=0
-    local endsnp=0
     local outprefix=0
 
     ## echo $mpython $tejaaspy $genotype ${expression} ${geneinfo} $maffile
@@ -39,45 +36,37 @@ function submit_tejaas() {
     paramstr=$( basename $( dirname $( dirname $( dirname ${genotype} ) ) ) ) # temp solution
     ntot=$( echo ${paramstr} | cut -d'_' -f1 )
     njobs=$( echo $(( (ntot + nmax - 1)/nmax )) )
+    narr=$(( njobs - 1 ))
 
     if [ -d ${jobsubdir} ]; then rm -rf ${jobsubdir}; fi; mkdir -p ${jobsubdir}
     if [ ! -d ${outdir} ]; then mkdir -p ${outdir}; fi
+    jobname="${jobprefix}"
+    outprefix="${outdir}/chunk"
+    ciswindow="1"
 
-    for (( i=0; i < ${njobs}; i++ )); do
-        index=`echo ${i} | awk '{printf "%03d", $1}'`
-        jobname="${jobprefix}_${index}"
+    # create the job submission file
+    sed "s|_JOB_NAME|${jobname}|g;
+         s|_PYT_ENV_|${mpython}|g;
+         s|_TEJ_PYT_|${tejaaspy}|g;
+         s|_GT_FILE_|${genotype}|g;
+         s|_EXPR_FL_|${expression}|g;
+         s|_GX_CRFL_|${corrected_expression}|g;
+         s|_GEN_POSF|${geneinfo}|g;
+         s|_TJ_METHD|${method}|g;
+         s|_NULL_MDL|${null}|g;
+         s|_OUT_PRFX|${outprefix}|g;
+         s|_STRT_END|${includesnps}|g;
+         s|_SNP_CUT_|${snpthres}|g;
+         s|_GEN_CUT_|${genethres}|g;
+         s|_SIG_BETA|${sbeta}|g;
+         s|_CIS_WIN_|${ciswindow}|g;
+         s|_MAF_FILE|${maffile}|g;
+         s|_NUM_MAX_|${nmax}|g
+         s|_NUM_TOT_|${ntot}|g
+         s|_EXT_FLAG|\"${extraflags}\"|g;
+        " ${bsubdir}/tejaas.bsub > ${jobsubdir}/${jobname}.sbatch
 
-        startsnp=$(( nmax * i + 1 ))
-        endsnp=$(( nmax * (i + 1) ))
-        if [ $endsnp -gt $ntot ]; then
-            endsnp=${ntot}
-        fi
-        includesnps="${startsnp}:${endsnp}"
-
-        outprefix="${outdir}/chunk${index}"
-        ciswindow=0
-
-        # create the job submission file
-        sed "s|_JOB_NAME|${jobname}|g;
-             s|_PYT_ENV_|${mpython}|g;
-             s|_TEJ_PYT_|${tejaaspy}|g;
-             s|_GT_FILE_|${genotype}|g;
-             s|_EXPR_FL_|${expression}|g;
-             s|_GEN_POSF|${geneinfo}|g;
-             s|_TJ_METHD|${method}|g;
-             s|_NULL_MDL|${null}|g;
-             s|_OUT_PRFX|${outprefix}|g;
-             s|_STRT_END|${includesnps}|g;
-             s|_SNP_CUT_|${snpthres}|g;
-             s|_GEN_CUT_|${genethres}|g;
-             s|_SIG_BETA|${sbeta}|g;
-             s|_CIS_WIN_|${ciswindow}|g;
-             s|_MAF_FILE|${maffile}|g;
-             s|_EXT_FLAG|\"${extraflags}\"|g;
-            " ${bsubdir}/tejaas.bsub > ${jobsubdir}/${jobname}.sh
-
-        thisjobid=$( submit_job ${jobsubdir} ${jobname} ${thisjobdep} )
-        jobdeps=$( add_deps "${jobdeps}" ${thisjobid} )
-    done
+    thisjobid=$( submit_job_array ${jobsubdir} ${jobname} ${thisjobdep} ${narr} )
+    jobdeps=$( add_deps "${jobdeps}" ${thisjobid} )
     eval $__jobdeps="'$jobdeps'"
 }
